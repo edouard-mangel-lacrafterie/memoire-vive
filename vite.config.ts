@@ -9,8 +9,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
-        name: 'Mémoire vive',
-        short_name: 'Mémoire vive',
+        name: 'Mémoires vives !',
+        short_name: 'Mémoires vives !',
         description: 'Un jeu de questions en famille pour faire parler les souvenirs.',
         lang: 'fr',
         start_url: './',

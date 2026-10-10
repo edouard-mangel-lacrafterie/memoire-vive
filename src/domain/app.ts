@@ -5,6 +5,7 @@ import type { AppState, GameState, InterviewQuestion, InterviewState } from './t
 export type AppAction =
   | { type: 'chooseMode'; mode: 'jeu' | 'interview' }
   | { type: 'home' }
+  | { type: 'quit' }
   | { type: 'game'; action: GameAction }
   | { type: 'interview'; action: InterviewAction }
 
@@ -22,6 +23,12 @@ export function reduceApp(s: AppState, action: AppAction, deps: AppDeps): AppSta
       return s.mode === 'accueil' ? { ...s, mode: action.mode } : s
     case 'home':
       return { mode: 'accueil', game: settleGame(s.game, deps), interview: settleInterview(s.interview) }
+    case 'quit': {
+      // Sortie en cours de route : la partie est oubliée (joueurs gardés), l'entretien reprendra aux chapitres.
+      if (s.mode === 'jeu') return { ...s, mode: 'accueil', game: reduceGame(s.game, { type: 'abandon' }, deps) }
+      if (s.mode === 'interview') return { ...s, mode: 'accueil', interview: reduceInterview(s.interview, { type: 'back' }, deps.interviewBank) }
+      return s
+    }
     case 'game':
       return s.mode === 'jeu' ? { ...s, game: reduceGame(s.game, action.action, deps) } : s
     case 'interview':

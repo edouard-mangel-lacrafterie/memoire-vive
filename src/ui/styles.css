@@ -51,8 +51,9 @@ p { margin: 0; }
 
 /* barre en partie */
 .topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 56px; margin: 0 -8px 0 0; }
-.wordmark { font-family: var(--serif); font-style: italic; font-size: 17px; }
-.pill { min-height: 44px; padding: 0 16px; border: 1.5px solid var(--ink); border-radius: 22px; background: transparent; font-size: 15px; font-weight: 700; }
+.wordmark { font-family: var(--serif); font-style: italic; font-size: 17px; white-space: nowrap; }
+.pills { display: flex; gap: 8px; }
+.pill { min-height: 44px; padding: 0 14px; border: 1.5px solid var(--ink); border-radius: 22px; background: transparent; font-size: 14px; font-weight: 700; white-space: nowrap; }
 
 /* boutons */
 .btn-primary {

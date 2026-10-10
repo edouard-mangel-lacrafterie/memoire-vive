@@ -20,17 +20,19 @@ const ICON_MIC = '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11
 
 const plural = (n: number, one: string, many: string) => `${n} ${n > 1 ? many : one}`
 
-function topBar(action: string, label: string): string {
+/** Barre de navigation : le nom, un bouton de contexte facultatif, et toujours une sortie vers l'accueil. */
+function topBar(context?: { action: string; label: string }): string {
+  const ctx = context ? `<button class="pill" data-action="${context.action}">${context.label}</button>` : ''
   return `<header class="topbar">
-    <span class="wordmark">Mémoire vive</span>
-    <button class="pill" data-action="${action}">${label}</button>
+    <span class="wordmark">Mémoires vives !</span>
+    <nav class="pills">${ctx}<button class="pill" data-action="quit" aria-label="Quitter et revenir à l'accueil">Quitter</button></nav>
   </header>`
 }
 
 function homeScreen(): string {
   return `
     <div class="heading center">
-      <h1>Mémoire vive</h1>
+      <h1>Mémoires vives !</h1>
       <p class="hand-muted">les histoires de famille, à voix haute</p>
     </div>
     <div class="stack modes">
@@ -64,7 +66,7 @@ function playersScreen(s: GameState): string {
   const cta = missing
     ? `<p class="cant-start">Encore ${plural(missing, 'joueur', 'joueurs')} pour commencer</p>`
     : `<button class="btn-primary" data-action="start">Commencer la partie</button>`
-  return `${topBar('home', 'Accueil')}
+  return `${topBar()}
     <div class="heading">
       <h1>Qui joue&nbsp;?</h1>
       <p class="muted">Ajoute chaque personne autour de la table, avec son âge. Les questions s'adaptent.</p>
@@ -90,7 +92,7 @@ function turnScreen(s: GameState): string {
       </button>`,
     )
     .join('')
-  return `${topBar('abandon', 'Abandonner')}
+  return `${topBar()}
     <div class="handoff">
       <p class="eyebrow">C'est au tour de</p>
       <div class="polaroid name-card">
@@ -117,7 +119,7 @@ function themeScreen(s: GameState, d: RenderDeps): string {
       </button>`,
     )
     .join('')
-  return `${topBar('abandon', 'Abandonner')}
+  return `${topBar()}
     <div class="heading">
       <h1 class="h-md">Une question pour ${esc(target.name)}</h1>
       <p class="muted">Choisis un thème.</p>
@@ -130,7 +132,7 @@ function questionScreen(s: GameState, d: RenderDeps): string {
   const target = byId(s.players, s.target)!
   const q = d.bank.find((x) => x.id === s.current)!
   const theme = d.themes.find((t) => t.id === s.theme)!
-  return `${topBar('abandon', 'Abandonner')}
+  return `${topBar()}
     <div class="q-head">
       <span class="tape-label">${esc(theme.label)}</span>
       <p><strong>${esc(asker.name)}</strong> demande à <strong>${esc(target.name)}</strong></p>
@@ -164,7 +166,7 @@ function endScreen(s: GameState): string {
 }
 
 function introScreen(d: RenderDeps): string {
-  return `${topBar('home', 'Accueil')}
+  return `${topBar()}
     <div class="heading">
       <h1 class="h-md">Avant de commencer</h1>
       <p class="muted">Quelques questions par visite suffisent. Laisse la personne divaguer quand un bon souvenir remonte, garde des photos ou des lettres à portée de main.</p>
@@ -189,7 +191,7 @@ function chaptersScreen(s: InterviewState, d: RenderDeps): string {
       </button>`
     })
     .join('')
-  return `${topBar('iv-finish', 'Terminer')}
+  return `${topBar({ action: 'iv-finish', label: 'Terminer' })}
     <div class="heading">
       <h1 class="h-md">Quel chapitre&nbsp;?</h1>
       <p class="muted">${plural(s.done.length, 'question explorée', 'questions explorées')} sur ${d.interviewBank.length}.</p>
@@ -203,7 +205,7 @@ function interviewQuestionScreen(s: InterviewState, d: RenderDeps): string {
   const index = inChapter.findIndex((q) => q.id === s.current)
   const q = inChapter[index]!
   const probes = d.followUp.probes.map((p) => `<li>${esc(p)}</li>`).join('')
-  return `${topBar('iv-back', 'Chapitres')}
+  return `${topBar({ action: 'iv-back', label: 'Chapitres' })}
     <div class="q-head">
       <span class="tape-label">${esc(chapter.label)}</span>
       <p class="muted">Question ${index + 1} sur ${inChapter.length}</p>

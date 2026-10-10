@@ -56,3 +56,23 @@ describe('retour accueil', () => {
     expect(run(finished, { type: 'home' }).interview).toEqual(initialApp.interview)
   })
 })
+
+describe('quitter en cours', () => {
+  test('quitter une partie en cours revient à l\'accueil, garde les joueurs et oublie la partie', () => {
+    const mid: AppState = { ...initialApp, mode: 'jeu', game: { ...initialApp.game, phase: 'tour', players: [{ id: 'p1', name: 'Mamie', age: 72 }, { id: 'p2', name: 'Léo', age: 9 }], memories: 1, asked: ['q1'] } }
+    const s = run(mid, { type: 'quit' })
+    expect(s.mode).toBe('accueil')
+    expect(s.game.phase).toBe('joueurs')
+    expect(s.game.players).toHaveLength(2)
+    expect(s.game.memories).toBe(0)
+  })
+  test("quitter pendant une question d'entretien revient à l'accueil et garde l'avancement, prêt à reprendre aux chapitres", () => {
+    const mid: AppState = { ...initialApp, mode: 'interview', interview: { phase: 'question', chapter: 'voix', current: 'v1', done: ['v0'] } }
+    const s = run(mid, { type: 'quit' })
+    expect(s.mode).toBe('accueil')
+    expect(s.interview).toEqual({ phase: 'chapitres', done: ['v0'] })
+  })
+  test("quitter depuis l'accueil ne change rien", () => {
+    expect(run(initialApp, { type: 'quit' })).toEqual(initialApp)
+  })
+})

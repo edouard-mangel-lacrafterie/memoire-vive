@@ -37,6 +37,7 @@ root.addEventListener('click', (e) => {
   switch (action) {
     case 'mode': return dispatch({ type: 'chooseMode', mode: mode as 'jeu' | 'interview' })
     case 'home': return dispatch({ type: 'home' })
+    case 'quit': return dispatch({ type: 'quit' })
     case 'removePlayer': return game({ type: 'removePlayer', id: id! })
     case 'start': return game({ type: 'start' })
     case 'chooseTarget': return game({ type: 'chooseTarget', id: id! })
