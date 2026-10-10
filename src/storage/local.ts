@@ -3,7 +3,7 @@ import type { GameState } from '../domain/types'
 const STATE_KEY = 'mv.state'
 const EVENTS_KEY = 'mv.events'
 
-export type UnlockEvent = { date: string; players: number; memories: number; email?: string }
+export type UnlockEvent = { kind: 'unlock' | 'email'; date: string; players: number; memories: number; email?: string }
 
 function readJson<T>(key: string): T | undefined {
   try {

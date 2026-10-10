@@ -1,6 +1,7 @@
 import { currentAsker } from '../domain/game'
 import { tableLevel } from '../domain/tableLevel'
 import type { GameState, Player, Question, Theme } from '../domain/types'
+import { playerLabel } from './playerLabel'
 
 export type UiState = { thanks: boolean }
 export type RenderDeps = { themes: readonly Theme[]; questions: readonly Question[] }
@@ -9,6 +10,8 @@ const esc = (s: string) =>
   s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!)
 
 const byId = (players: Player[], id?: string) => players.find((p) => p.id === id)
+
+const abandonLink = `<p class="hint"><a href="#" data-action="abandon">Abandonner la partie</a></p>`
 
 function playersScreen(s: GameState): string {
   const rows = s.players
@@ -38,12 +41,13 @@ function turnScreen(s: GameState): string {
   const asker = currentAsker(s)!
   const targets = s.players
     .filter((p) => p.id !== asker.id)
-    .map((p) => `<button class="btn btn-big" data-action="chooseTarget" data-id="${p.id}">${esc(p.name)}</button>`)
+    .map((p) => `<button class="btn btn-big" data-action="chooseTarget" data-id="${p.id}">${esc(playerLabel(p))}</button>`)
     .join('')
   return `
-    <p class="lead">C'est à <strong>${esc(asker.name)}</strong> de poser une question.</p>
+    <p class="lead">C'est à <strong>${esc(playerLabel(asker))}</strong> de poser une question.</p>
     <p>À qui ?</p>
-    <div class="stack">${targets}</div>`
+    <div class="stack">${targets}</div>
+    ${abandonLink}`
 }
 
 function themeScreen(s: GameState, d: RenderDeps): string {
@@ -59,7 +63,8 @@ function themeScreen(s: GameState, d: RenderDeps): string {
   return `
     <p class="lead">Une question pour <strong>${esc(target.name)}</strong>.</p>
     <p>Choisis un thème.</p>
-    <div class="grid">${tiles}</div>`
+    <div class="grid">${tiles}</div>
+    ${abandonLink}`
 }
 
 function questionScreen(s: GameState, d: RenderDeps): string {
@@ -70,7 +75,8 @@ function questionScreen(s: GameState, d: RenderDeps): string {
     <p class="lead"><span aria-hidden="true">${theme.icon}</span> ${esc(theme.label)}</p>
     <p class="question">${esc(q.text)}</p>
     <p>${esc(target.name)}, à toi !</p>
-    <button class="btn btn-primary btn-big" data-action="answered">Répondu !</button>`
+    <button class="btn btn-primary btn-big" data-action="answered">Répondu !</button>
+    ${abandonLink}`
 }
 
 function endScreen(s: GameState, ui: UiState, d: RenderDeps): string {

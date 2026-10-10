@@ -105,3 +105,30 @@ describe('tour', () => {
     expect(s.memories).toBe(0)
   })
 })
+
+describe('homonymes et abandon', () => {
+  test('la cible se choisit par id parmi deux joueurs du même nom', () => {
+    const s = run(
+      initialState,
+      { type: 'addPlayer', name: 'Mamie', age: 72 },
+      { type: 'addPlayer', name: 'Léo', age: 9 },
+      { type: 'addPlayer', name: 'Léo', age: 40 },
+      { type: 'start' },
+    )
+    const leoAdulte = s.players[2]!
+    expect(reduce(s, { type: 'chooseTarget', id: leoAdulte.id }, deps).target).toBe(leoAdulte.id)
+  })
+  test('abandonner en cours de partie revient aux joueurs sans compter de souvenir', () => {
+    const s = reduce(twoPlayers(), { type: 'start' }, deps)
+    const mid = run(s, { type: 'chooseTarget', id: s.players[1]!.id }, { type: 'chooseTheme', theme: 'a' })
+    const out = reduce(mid, { type: 'abandon' }, deps)
+    expect(out.phase).toBe('joueurs')
+    expect(out.players).toHaveLength(2)
+    expect(out.memories).toBe(0)
+    expect(out.target).toBeUndefined()
+  })
+  test('abandonner sur l\'écran des joueurs ne change rien', () => {
+    const s = twoPlayers()
+    expect(reduce(s, { type: 'abandon' }, deps)).toEqual(s)
+  })
+})

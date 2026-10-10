@@ -10,6 +10,7 @@ export type Action =
   | { type: 'chooseTheme'; theme: ThemeId }
   | { type: 'answered' }
   | { type: 'restart' }
+  | { type: 'abandon' }
 
 export type Deps = { bank: readonly Question[]; rng: Rng; newId: () => string }
 
@@ -63,6 +64,9 @@ export function reduce(state: GameState, action: Action, deps: Deps): GameState 
     }
     case 'restart':
       if (state.phase !== 'fin') return state
+      return { ...initialState, players: state.players }
+    case 'abandon':
+      if (state.phase === 'joueurs') return state
       return { ...initialState, players: state.players }
   }
 }

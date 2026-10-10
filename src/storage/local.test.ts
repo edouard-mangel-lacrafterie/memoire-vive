@@ -34,7 +34,8 @@ test("clearState efface l'état", () => {
 })
 
 test('journalise les clics de déblocage et les exporte en JSON', () => {
-  logUnlock({ date: '2026-10-11T10:00:00Z', players: 3, memories: 3 })
-  logUnlock({ date: '2026-10-11T11:00:00Z', players: 2, memories: 2, email: 'a@b.c' })
-  expect(JSON.parse(exportEvents())).toHaveLength(2)
+  logUnlock({ kind: 'unlock', date: '2026-10-11T10:00:00Z', players: 3, memories: 3 })
+  logUnlock({ kind: 'email', date: '2026-10-11T11:00:00Z', players: 3, memories: 3, email: 'a@b.c' })
+  const events = JSON.parse(exportEvents()) as { kind: string }[]
+  expect(events.map((e) => e.kind)).toEqual(['unlock', 'email'])
 })
