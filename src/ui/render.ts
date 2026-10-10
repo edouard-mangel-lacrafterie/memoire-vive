@@ -3,7 +3,6 @@ import { tableLevel } from '../domain/tableLevel'
 import type { GameState, Player, Question, Theme } from '../domain/types'
 import { playerLabel } from './playerLabel'
 
-export type UiState = { thanks: boolean }
 export type RenderDeps = { themes: readonly Theme[]; questions: readonly Question[] }
 
 const esc = (s: string) =>
@@ -52,8 +51,7 @@ function playersScreen(s: GameState): string {
       <div class="field age-field"><label for="age">Âge</label><input id="age" name="age" type="number" inputmode="numeric" placeholder="72" min="0" max="120" required /></div>
       <button class="btn-outline" type="submit">Ajouter</button>
     </form>
-    ${cta}
-    <p class="hint"><a href="#" data-action="export">Exporter les stats</a></p>`
+    ${cta}`
 }
 
 function turnScreen(s: GameState): string {
@@ -126,15 +124,7 @@ function questionScreen(s: GameState, d: RenderDeps): string {
     </button>`
 }
 
-function endScreen(s: GameState, ui: UiState, d: RenderDeps): string {
-  const premium = d.questions.filter((q) => q.tier === 'premium').length
-  const door = ui.thanks
-    ? `<p class="thanks">Merci&nbsp;! Le pack arrive bientôt.</p>
-       <form id="email-form" class="add-form">
-         <div class="field grow"><label for="email">Votre email, pour être prévenu (facultatif)</label><input id="email" name="email" type="email" placeholder="prenom@exemple.fr" /></div>
-         <button class="btn-outline" type="submit">OK</button>
-       </form>`
-    : `<button class="btn-primary" data-action="unlock">Débloquer · 4,99 €</button>`
+function endScreen(s: GameState): string {
   return `
     <div class="heading">
       <h1>${plural(s.memories, 'souvenir partagé', 'souvenirs partagés')}</h1>
@@ -142,20 +132,19 @@ function endScreen(s: GameState, ui: UiState, d: RenderDeps): string {
     </div>
     <section class="polaroid offer">
       <span class="tape" aria-hidden="true"></span>
-      <h2>Continuer avec le pack «&nbsp;Souvenirs profonds&nbsp;»</h2>
-      <p class="muted">${premium} questions inédites pour aller plus loin, celles qu'on ne pose jamais.</p>
-      ${door}
-    </section>
-    <button class="btn-outline wide" data-action="restart">Rejouer gratuitement</button>`
+      <h2>Merci d'avoir joué</h2>
+      <p class="muted">Les questions déjà posées ne reviendront pas avant la prochaine partie.</p>
+      <button class="btn-primary" data-action="restart">Rejouer</button>
+    </section>`
 }
 
-export function render(root: HTMLElement, s: GameState, ui: UiState, d: RenderDeps): void {
+export function render(root: HTMLElement, s: GameState, d: RenderDeps): void {
   const screens: Record<GameState['phase'], () => string> = {
     joueurs: () => playersScreen(s),
     tour: () => turnScreen(s),
     theme: () => themeScreen(s, d),
     question: () => questionScreen(s, d),
-    fin: () => endScreen(s, ui, d),
+    fin: () => endScreen(s),
   }
   root.innerHTML = `<section class="screen screen-${s.phase}">${screens[s.phase]()}</section>`
 }

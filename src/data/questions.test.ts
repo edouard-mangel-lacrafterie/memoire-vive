@@ -10,7 +10,7 @@ test('ids uniques', () => {
   expect(new Set(questions.map((q) => q.id)).size).toBe(questions.length)
 })
 
-test('chaque thème a au moins une question gratuite pour chaque couple de tranches', () => {
+test('chaque thème a au moins une question pour chaque couple de tranches', () => {
   for (const theme of themes) {
     for (const askerBand of bands) {
       for (const answererBand of bands) {
@@ -19,8 +19,4 @@ test('chaque thème a au moins une question gratuite pour chaque couple de tranc
       }
     }
   }
-})
-
-test('il y a 12 questions premium pour le texte de la porte factice', () => {
-  expect(questions.filter((q) => q.tier === 'premium')).toHaveLength(12)
 })

@@ -4,7 +4,7 @@ import { initialState } from './game'
 import type { GameState, Question, Theme } from './types'
 
 const themes: Theme[] = [{ id: 'enfance', label: 'Enfance', icon: '<path d="M0 0"/>', tint: '#C9D6E8' }]
-const bank: Question[] = [{ id: 'q1', text: 'Q', theme: 'enfance', asker: 'toutes', answerer: 'toutes', tier: 'gratuit' }]
+const bank: Question[] = [{ id: 'q1', text: 'Q', theme: 'enfance', asker: 'toutes', answerer: 'toutes' }]
 const players = [{ id: 'p1', name: 'Mamie', age: 72 }, { id: 'p2', name: 'Léo', age: 9 }]
 const ok: GameState = { phase: 'question', players, turn: 0, target: 'p2', theme: 'enfance', current: 'q1', asked: ['q1'], memories: 0 }
 

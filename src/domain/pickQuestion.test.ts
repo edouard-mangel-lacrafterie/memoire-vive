@@ -3,7 +3,7 @@ import { pickQuestion } from './pickQuestion'
 import type { Question } from './types'
 
 const q = (id: string, over: Partial<Question> = {}): Question => ({
-  id, text: id, theme: 'enfance', asker: 'toutes', answerer: 'toutes', tier: 'gratuit', ...over,
+  id, text: id, theme: 'enfance', asker: 'toutes', answerer: 'toutes', ...over,
 })
 const first = () => 0
 const base = { askerBand: 'adulte', answererBand: 'aine', theme: 'enfance', asked: [], rng: first } as const
@@ -21,11 +21,6 @@ test('se replie sur une question "toutes" inédite', () => {
 test('recycle les déjà posées quand tout est épuisé', () => {
   const bank = [q('large')]
   expect(pickQuestion(bank, { ...base, asked: ['large'] })?.id).toBe('large')
-})
-
-test('ne tire jamais une question premium', () => {
-  const bank = [q('prem', { tier: 'premium' })]
-  expect(pickQuestion(bank, base)).toBeUndefined()
 })
 
 test('ignore les autres thèmes', () => {

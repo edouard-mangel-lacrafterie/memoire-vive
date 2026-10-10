@@ -1,15 +1,14 @@
 import type { Question } from '../domain/types'
 
-// Banque de questions. Pour en ajouter : une ligne q(id, thème, texte, répondant?, demandeur?, palier?).
-// Tranches : 'enfant' (< 15), 'adulte' (15-59), 'aine' (60+), 'toutes'. Palier : 'gratuit' (défaut) ou 'premium'.
+// Banque de questions. Pour en ajouter : une ligne q(id, thème, texte, répondant?, demandeur?).
+// Tranches : 'enfant' (< 15), 'adulte' (15-59), 'aine' (60+), 'toutes'.
 const q = (
   id: string,
   theme: Question['theme'],
   text: string,
   answerer: Question['answerer'] = 'toutes',
   asker: Question['asker'] = 'toutes',
-  tier: Question['tier'] = 'gratuit',
-): Question => ({ id, theme, text, asker, answerer, tier })
+): Question => ({ id, theme, text, asker, answerer })
 
 export const questions: readonly Question[] = [
   // Enfance
@@ -123,17 +122,17 @@ export const questions: readonly Question[] = [
   q('pre-11', 'premieres', 'Si tu pouvais revivre une journée, laquelle ?'),
   q('pre-12', 'premieres', 'Si tu pouvais parler à toi-même à 20 ans, tu dirais quoi ?', 'aine'),
 
-  // premium — jamais tirées, servent la porte factice
-  q('p-01', 'famille', 'Quel secret de famille as-tu découvert en grandissant ?', 'toutes', 'toutes', 'premium'),
-  q('p-02', 'enfance', "De quoi avais-tu honte enfant, et que tu assumes aujourd'hui ?", 'toutes', 'toutes', 'premium'),
-  q('p-03', 'ecole', "Quel adulte t'a le plus marqué, et pourquoi ?", 'toutes', 'toutes', 'premium'),
-  q('p-04', 'amour', 'Quelle est la chose la plus folle que tu aies faite par amour ?', 'toutes', 'toutes', 'premium'),
-  q('p-05', 'souvenirs', 'Quel mensonge as-tu tenu le plus longtemps ?', 'toutes', 'toutes', 'premium'),
-  q('p-06', 'famille', 'Quelle fête de famille a mal tourné, et pourquoi on en rit ?', 'toutes', 'toutes', 'premium'),
-  q('p-07', 'amour', "La première fois que tu as dit « je t'aime » ?", 'toutes', 'toutes', 'premium'),
-  q('p-08', 'emotions', "La première fois que tu as perdu quelqu'un ?", 'toutes', 'toutes', 'premium'),
-  q('p-09', 'premieres', "La première fois que tu t'es senti adulte ?", 'toutes', 'toutes', 'premium'),
-  q('p-10', 'emotions', 'Si tu devais écrire une lettre à lire dans 20 ans, à qui ?', 'toutes', 'toutes', 'premium'),
-  q('p-11', 'souvenirs', 'Si tu pouvais réparer une chose du passé, laquelle ?', 'toutes', 'toutes', 'premium'),
-  q('p-12', 'voyages', 'Si tu devais résumer ce que tu as appris de la vie en une phrase ?', 'toutes', 'toutes', 'premium'),
+  // Souvenirs profonds, celles qu'on ne pose jamais
+  q('p-01', 'famille', 'Quel secret de famille as-tu découvert en grandissant ?'),
+  q('p-02', 'enfance', "De quoi avais-tu honte enfant, et que tu assumes aujourd'hui ?"),
+  q('p-03', 'ecole', "Quel adulte t'a le plus marqué, et pourquoi ?"),
+  q('p-04', 'amour', 'Quelle est la chose la plus folle que tu aies faite par amour ?'),
+  q('p-05', 'souvenirs', 'Quel mensonge as-tu tenu le plus longtemps ?'),
+  q('p-06', 'famille', 'Quelle fête de famille a mal tourné, et pourquoi on en rit ?'),
+  q('p-07', 'amour', "La première fois que tu as dit « je t'aime » ?"),
+  q('p-08', 'emotions', "La première fois que tu as perdu quelqu'un ?"),
+  q('p-09', 'premieres', "La première fois que tu t'es senti adulte ?"),
+  q('p-10', 'emotions', 'Si tu devais écrire une lettre à lire dans 20 ans, à qui ?'),
+  q('p-11', 'souvenirs', 'Si tu pouvais réparer une chose du passé, laquelle ?'),
+  q('p-12', 'voyages', 'Si tu devais résumer ce que tu as appris de la vie en une phrase ?'),
 ]

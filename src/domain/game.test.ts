@@ -3,8 +3,8 @@ import { currentAsker, initialState, reduce, type Action, type Deps } from './ga
 import type { GameState, Question } from './types'
 
 const bank: Question[] = [
-  { id: 'q1', text: 'Q1', theme: 'enfance', asker: 'toutes', answerer: 'toutes', tier: 'gratuit' },
-  { id: 'q2', text: 'Q2', theme: 'enfance', asker: 'toutes', answerer: 'toutes', tier: 'gratuit' },
+  { id: 'q1', text: 'Q1', theme: 'enfance', asker: 'toutes', answerer: 'toutes' },
+  { id: 'q2', text: 'Q2', theme: 'enfance', asker: 'toutes', answerer: 'toutes' },
 ]
 let counter = 0
 const deps: Deps = { bank, rng: () => 0, newId: () => `p${++counter}` }

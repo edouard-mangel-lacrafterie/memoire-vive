@@ -1,5 +1,5 @@
 import { beforeEach, expect, test } from 'vitest'
-import { clearState, exportEvents, loadState, logUnlock, saveState } from './local'
+import { clearState, loadState, saveState } from './local'
 import { initialState } from '../domain/game'
 
 const store = new Map<string, string>()
@@ -31,11 +31,4 @@ test("clearState efface l'état", () => {
   saveState(initialState)
   clearState()
   expect(loadState()).toBeUndefined()
-})
-
-test('journalise les clics de déblocage et les exporte en JSON', () => {
-  logUnlock({ kind: 'unlock', date: '2026-10-11T10:00:00Z', players: 3, memories: 3 })
-  logUnlock({ kind: 'email', date: '2026-10-11T11:00:00Z', players: 3, memories: 3, email: 'a@b.c' })
-  const events = JSON.parse(exportEvents()) as { kind: string }[]
-  expect(events.map((e) => e.kind)).toEqual(['unlock', 'email'])
 })

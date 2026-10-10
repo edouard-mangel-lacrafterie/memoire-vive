@@ -1,6 +1,5 @@
 export type AgeBand = 'enfant' | 'adulte' | 'aine'
 export type BandRule = AgeBand | 'toutes'
-export type Tier = 'gratuit' | 'premium'
 export type ThemeId = 'enfance' | 'emotions' | 'souvenirs' | 'amour' | 'famille' | 'voyages' | 'ecole' | 'premieres'
 
 export type Player = { id: string; name: string; age: number }
@@ -12,7 +11,6 @@ export type Question = {
   theme: ThemeId
   asker: BandRule
   answerer: BandRule
-  tier: Tier
 }
 
 export type Phase = 'joueurs' | 'tour' | 'theme' | 'question' | 'fin'
