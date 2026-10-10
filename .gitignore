@@ -3,3 +3,4 @@ dist/
 .vite/
 .superpowers/
 .pnpm-store/
+.playwright-mcp/
