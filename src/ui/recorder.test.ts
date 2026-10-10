@@ -21,9 +21,10 @@ test('stop revient à l\'arrêt et remet le temps à zéro', () => {
   expect(run(idleRecorder, 'record', 'tick', 'stop')).toEqual(idleRecorder)
 })
 
-test('un changement de question remet le temps à zéro sans interrompre l\'enregistrement', () => {
+test('une nouvelle question relance un enregistrement à zéro, quel que soit l\'état précédent', () => {
+  expect(run(idleRecorder, 'newQuestion')).toEqual({ status: 'recording', seconds: 0 })
   expect(run(idleRecorder, 'record', 'tick', 'tick', 'newQuestion')).toEqual({ status: 'recording', seconds: 0 })
-  expect(run(idleRecorder, 'record', 'pause', 'newQuestion')).toEqual({ status: 'paused', seconds: 0 })
+  expect(run(idleRecorder, 'record', 'pause', 'newQuestion')).toEqual({ status: 'recording', seconds: 0 })
 })
 
 test('tick et pause sont ignorés à l\'arrêt', () => {

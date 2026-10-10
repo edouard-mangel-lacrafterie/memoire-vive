@@ -2,7 +2,7 @@ import { reduceApp, type AppAction } from './domain/app'
 import type { Action as GameAction } from './domain/game'
 import type { InterviewAction } from './domain/interview'
 import { recoverState, type Catalog } from './domain/validState'
-import type { ChapterId, ThemeId } from './domain/types'
+import type { AppState, ChapterId, ThemeId } from './domain/types'
 import { chapters, consent, followUp, interviewQuestions } from './data/interview'
 import { questions } from './data/questions'
 import { themes } from './data/themes'
@@ -19,9 +19,21 @@ let state = recoverState(loadState(), catalog)
 const ui: UiState = { recorder: idleRecorder, sending: false, toast: undefined }
 
 function dispatch(action: AppAction): void {
+  const before = state
   state = reduceApp(state, action, deps)
   saveState(state)
+  syncRecorder(before, state)
   paint()
+}
+
+const openQuestion = (s: AppState) => (s.mode === 'interview' && s.interview.phase === 'question' ? s.interview.current : undefined)
+
+/** Une question qui s'ouvre démarre une prise ; quitter l'écran de question arrête l'enregistreur. */
+function syncRecorder(before: AppState, after: AppState): void {
+  const was = openQuestion(before)
+  const now = openQuestion(after)
+  if (now && now !== was) ui.recorder = reduceRecorder(ui.recorder, 'newQuestion')
+  else if (!now && was) ui.recorder = reduceRecorder(ui.recorder, 'stop')
 }
 const game = (action: GameAction) => dispatch({ type: 'game', action })
 const interview = (action: InterviewAction) => dispatch({ type: 'interview', action })
@@ -48,11 +60,9 @@ setInterval(() => {
   if (time) time.textContent = formatTime(ui.recorder.seconds)
 }, 1000)
 
-/** Change de question : la prise précédente part en transmission, le chrono repart, puis un toast confirme. */
+/** Change de question : la prise précédente part en transmission, puis un toast confirme. */
 function nextQuestion(action: InterviewAction): void {
-  const wasQuestion = state.mode === 'interview' && state.interview.phase === 'question'
-  ui.recorder = reduceRecorder(ui.recorder, 'newQuestion')
-  if (!wasQuestion) return interview(action)
+  if (!openQuestion(state)) return interview(action)
   ui.sending = true
   ui.toast = undefined
   interview(action)
@@ -105,4 +115,5 @@ root.addEventListener('submit', (e) => {
   }
 })
 
+syncRecorder({ ...state, mode: 'accueil' }, state) // reprise directement sur une question : on enregistre aussi
 paint()

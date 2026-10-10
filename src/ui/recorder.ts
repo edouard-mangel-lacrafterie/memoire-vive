@@ -15,8 +15,8 @@ export function reduceRecorder(r: Recorder, event: RecorderEvent): Recorder {
     case 'tick':
       return r.status === 'recording' ? { ...r, seconds: r.seconds + 1 } : r
     case 'newQuestion':
-      // La prise de la question précédente part « en transmission » ; on continue sur la suivante.
-      return { ...r, seconds: 0 }
+      // Par défaut, chaque question ouvre une nouvelle prise : la précédente part « en transmission ».
+      return { status: 'recording', seconds: 0 }
   }
 }
 
