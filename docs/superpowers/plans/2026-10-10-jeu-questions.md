@@ -1013,7 +1013,8 @@ export function render(root: HTMLElement, s: GameState, ui: UiState, d: RenderDe
 import { initialState, reduce, type Action } from './domain/game'
 import { questions } from './data/questions'
 import { themes } from './data/themes'
-import { clearState, exportEvents, loadState, logUnlock, saveState } from './storage/local'
+import type { ThemeId } from './domain/types'
+import { exportEvents, loadState, logUnlock, saveState } from './storage/local'
 import { render, type UiState } from './ui/render'
 
 const root = document.querySelector<HTMLElement>('#app')!
@@ -1049,7 +1050,7 @@ root.addEventListener('click', (e) => {
     case 'removePlayer': return dispatch({ type: 'removePlayer', id: id! })
     case 'start': return dispatch({ type: 'start' })
     case 'chooseTarget': return dispatch({ type: 'chooseTarget', id: id! })
-    case 'chooseTheme': return dispatch({ type: 'chooseTheme', theme: theme as Action & { type: 'chooseTheme' } extends { theme: infer T } ? T : never })
+    case 'chooseTheme': return dispatch({ type: 'chooseTheme', theme: theme as ThemeId })
     case 'answered': return dispatch({ type: 'answered' })
     case 'restart': return dispatch({ type: 'restart' })
     case 'unlock':
@@ -1077,10 +1078,7 @@ root.addEventListener('submit', (e) => {
 })
 
 paint()
-export { clearState }
 ```
-
-Note : la ligne `chooseTheme` utilise un type conditionnel verbeux. Si `tsc` râle, remplacer par `theme: theme as ThemeId` avec `import type { ThemeId } from './domain/types'`. La dernière ligne `export { clearState }` évite un avertissement d'import inutilisé ; la supprimer avec l'import si l'on préfère.
 
 - [ ] **Step 3 : Écrire `src/ui/styles.css`**
 
