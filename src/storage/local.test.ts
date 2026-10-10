@@ -1,6 +1,6 @@
 import { beforeEach, expect, test } from 'vitest'
 import { clearState, loadState, saveState } from './local'
-import { initialState } from '../domain/game'
+import { initialApp } from '../domain/app'
 
 const store = new Map<string, string>()
 beforeEach(() => {
@@ -16,7 +16,7 @@ beforeEach(() => {
 })
 
 test("sauvegarde et recharge l'état", () => {
-  const s = { ...initialState, memories: 3 }
+  const s = { ...initialApp, mode: 'jeu' as const }
   saveState(s)
   expect(loadState()).toEqual(s)
 })
@@ -28,7 +28,7 @@ test('renvoie undefined sans état ou avec un JSON corrompu', () => {
 })
 
 test("clearState efface l'état", () => {
-  saveState(initialState)
+  saveState(initialApp)
   clearState()
   expect(loadState()).toBeUndefined()
 })

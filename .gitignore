@@ -4,3 +4,5 @@ dist/
 .superpowers/
 .pnpm-store/
 .playwright-mcp/
+docs/resources/
+.vitest/

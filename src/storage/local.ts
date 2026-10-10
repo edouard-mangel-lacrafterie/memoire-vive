@@ -1,4 +1,4 @@
-import type { GameState } from '../domain/types'
+import type { AppState } from '../domain/types'
 
 const STATE_KEY = 'mv.state'
 
@@ -11,12 +11,12 @@ function readJson<T>(key: string): T | undefined {
   }
 }
 
-export function loadState(): GameState | undefined {
-  const s = readJson<GameState>(STATE_KEY)
-  return s && typeof s.phase === 'string' && Array.isArray(s.players) ? s : undefined
+/** Brut : la cohérence est vérifiée par recoverState. */
+export function loadState(): unknown {
+  return readJson<unknown>(STATE_KEY)
 }
 
-export function saveState(state: GameState): void {
+export function saveState(state: AppState): void {
   localStorage.setItem(STATE_KEY, JSON.stringify(state))
 }
 

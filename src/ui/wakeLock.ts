@@ -1,7 +1,11 @@
-import type { Phase } from '../domain/types'
+import type { AppState } from '../domain/types'
 
-/** L'écran reste allumé pendant qu'une partie est en cours (téléphone posé sur la table). */
-export const shouldKeepAwake = (phase: Phase): boolean => phase === 'tour' || phase === 'theme' || phase === 'question'
+/** L'écran reste allumé pendant qu'une partie ou un entretien est en cours (téléphone posé sur la table). */
+export function shouldKeepAwake(app: AppState): boolean {
+  if (app.mode === 'jeu') return app.game.phase === 'tour' || app.game.phase === 'theme' || app.game.phase === 'question'
+  if (app.mode === 'interview') return app.interview.phase === 'chapitres' || app.interview.phase === 'question'
+  return false
+}
 
 type Sentinel = { release(): Promise<void> }
 let sentinel: Sentinel | undefined
@@ -18,9 +22,9 @@ async function acquire(): Promise<void> {
   }
 }
 
-/** À appeler à chaque rendu : demande ou relâche le verrou selon la phase. */
-export function syncWakeLock(phase: Phase): void {
-  wanted = shouldKeepAwake(phase)
+/** À appeler à chaque rendu : demande ou relâche le verrou selon l'écran affiché. */
+export function syncWakeLock(app: AppState): void {
+  wanted = shouldKeepAwake(app)
   if (wanted) void acquire()
   else if (sentinel) void sentinel.release()
 }

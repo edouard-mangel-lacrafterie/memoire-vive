@@ -24,3 +24,13 @@ export type GameState = {
   asked: string[]
   memories: number
 }
+
+// Mode interview : un aîné raconte, un proche lit les questions chapitre par chapitre.
+export type ChapterId = 'voix' | 'enfance' | 'vie' | 'famille' | 'recul'
+export type Chapter = { id: ChapterId; label: string; icon: string; tint: string }
+export type InterviewQuestion = { id: string; chapter: ChapterId; text: string }
+export type InterviewPhase = 'intro' | 'chapitres' | 'question' | 'fin'
+export type InterviewState = { phase: InterviewPhase; chapter?: ChapterId; current?: string; done: string[] }
+
+export type Mode = 'accueil' | 'jeu' | 'interview'
+export type AppState = { mode: Mode; game: GameState; interview: InterviewState }
