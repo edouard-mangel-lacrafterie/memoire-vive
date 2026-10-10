@@ -8,13 +8,15 @@ import { questions } from './data/questions'
 import { themes } from './data/themes'
 import { loadState, saveState } from './storage/local'
 import { newId } from './ui/newId'
-import { render } from './ui/render'
+import { formatTime, idleRecorder, reduceRecorder, type RecorderEvent } from './ui/recorder'
+import { render, type UiState } from './ui/render'
 import { syncWakeLock } from './ui/wakeLock'
 
 const root = document.querySelector<HTMLElement>('#app')!
 const catalog: Catalog = { bank: questions, themes, interviewBank: interviewQuestions, chapters }
 const deps = { ...catalog, rng: Math.random, newId }
 let state = recoverState(loadState(), catalog)
+const ui: UiState = { recorder: idleRecorder, sending: false, toast: undefined }
 
 function dispatch(action: AppAction): void {
   state = reduceApp(state, action, deps)
@@ -25,8 +27,42 @@ const game = (action: GameAction) => dispatch({ type: 'game', action })
 const interview = (action: InterviewAction) => dispatch({ type: 'interview', action })
 
 function paint(): void {
-  render(root, state, { ...catalog, followUp, consent })
+  render(root, state, { ...catalog, followUp, consent }, ui)
   syncWakeLock(state)
+}
+
+// Enregistreur simulé : chronomètre, et « transmission » à chaque changement de question.
+const SENDING_MS = 1200
+const TOAST_MS = 2500
+let toastTimer: ReturnType<typeof setTimeout> | undefined
+
+function recorder(event: RecorderEvent): void {
+  ui.recorder = reduceRecorder(ui.recorder, event)
+  paint()
+}
+
+setInterval(() => {
+  if (ui.recorder.status !== 'recording') return
+  ui.recorder = reduceRecorder(ui.recorder, 'tick')
+  const time = root.querySelector('.rec-time')
+  if (time) time.textContent = formatTime(ui.recorder.seconds)
+}, 1000)
+
+/** Change de question : la prise précédente part en transmission, le chrono repart, puis un toast confirme. */
+function nextQuestion(action: InterviewAction): void {
+  const wasQuestion = state.mode === 'interview' && state.interview.phase === 'question'
+  ui.recorder = reduceRecorder(ui.recorder, 'newQuestion')
+  if (!wasQuestion) return interview(action)
+  ui.sending = true
+  ui.toast = undefined
+  interview(action)
+  setTimeout(() => {
+    ui.sending = false
+    ui.toast = 'Enregistrement transmis'
+    paint()
+    clearTimeout(toastTimer)
+    toastTimer = setTimeout(() => { ui.toast = undefined; paint() }, TOAST_MS)
+  }, SENDING_MS)
 }
 
 root.addEventListener('click', (e) => {
@@ -47,8 +83,11 @@ root.addEventListener('click', (e) => {
     case 'abandon': return game({ type: 'abandon' })
     case 'iv-start': return interview({ type: 'start' })
     case 'iv-chooseChapter': return interview({ type: 'chooseChapter', chapter: chapter as ChapterId })
-    case 'iv-next': return interview({ type: 'next' })
-    case 'iv-skip': return interview({ type: 'skip' })
+    case 'iv-next': return nextQuestion({ type: 'next' })
+    case 'iv-skip': return nextQuestion({ type: 'skip' })
+    case 'rec-record': return recorder('record')
+    case 'rec-pause': return recorder('pause')
+    case 'rec-stop': return recorder('stop')
     case 'iv-back': return interview({ type: 'back' })
     case 'iv-finish': return interview({ type: 'finish' })
     case 'iv-restart': return interview({ type: 'restart' })

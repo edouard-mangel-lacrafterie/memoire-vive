@@ -2,8 +2,11 @@ import { currentAsker } from '../domain/game'
 import { tableLevel } from '../domain/tableLevel'
 import type { Catalog } from '../domain/validState'
 import type { AppState, GameState, InterviewState, Player } from '../domain/types'
+import { formatTime, type Recorder } from './recorder'
 
 export type RenderDeps = Catalog & { followUp: { lead: string; probes: readonly string[] }; consent: string }
+/** État d'interface non persisté : enregistreur simulé, transmission en cours, toast à afficher. */
+export type UiState = { recorder: Recorder; sending: boolean; toast: string | undefined }
 
 const esc = (s: string) =>
   s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!)
@@ -16,6 +19,9 @@ const ICON_X = '<path d="M6 6l12 12"/><path d="M18 6L6 18"/>'
 const ICON_CHEVRON = '<path d="M9 5l7 7-7 7"/>'
 const ICON_THUMB = '<path d="M7 10v12"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/>'
 const ICON_TABLE = '<circle cx="12" cy="12" r="4"/><circle cx="12" cy="3.5" r="1.5"/><circle cx="12" cy="20.5" r="1.5"/><circle cx="3.5" cy="12" r="1.5"/><circle cx="20.5" cy="12" r="1.5"/>'
+const ICON_REC = '<circle cx="12" cy="12" r="6"/>'
+const ICON_PAUSE = '<path d="M8 5v14"/><path d="M16 5v14"/>'
+const ICON_STOP = '<rect x="6" y="6" width="12" height="12" rx="1.5"/>'
 const ICON_MIC = '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/><path d="M8.5 21h7"/>'
 
 const plural = (n: number, one: string, many: string) => `${n} ${n > 1 ? many : one}`
@@ -199,7 +205,26 @@ function chaptersScreen(s: InterviewState, d: RenderDeps): string {
     <div class="grid">${tiles}</div>`
 }
 
-function interviewQuestionScreen(s: InterviewState, d: RenderDeps): string {
+const REC_LABEL: Record<Recorder['status'], string> = { idle: 'Prêt à enregistrer', recording: 'Enregistrement', paused: 'En pause' }
+
+function recorderBar(r: Recorder, sending: boolean): string {
+  const btn = (action: string, label: string, icon: string, cls = '') =>
+    `<button class="icon-btn rec-btn ${cls}" data-action="${action}" aria-label="${label}" title="${label}">${svg(icon, 24, 2)}</button>`
+  const controls =
+    r.status === 'recording' ? btn('rec-pause', 'Mettre en pause', ICON_PAUSE) + btn('rec-stop', 'Arrêter', ICON_STOP)
+    : r.status === 'paused' ? btn('rec-record', 'Reprendre', ICON_REC, 'rec') + btn('rec-stop', 'Arrêter', ICON_STOP)
+    : btn('rec-record', 'Enregistrer', ICON_REC, 'rec')
+  const status = sending
+    ? `<span class="rec-label sending" role="status"><span class="spinner" aria-hidden="true"></span>Transmission…</span>`
+    : `<span class="rec-label">${REC_LABEL[r.status]}</span><span class="rec-time">${formatTime(r.seconds)}</span>`
+  return `<div class="recorder ${r.status}">
+    <span class="rec-dot" aria-hidden="true"></span>
+    ${status}
+    <span class="rec-controls">${controls}</span>
+  </div>`
+}
+
+function interviewQuestionScreen(s: InterviewState, d: RenderDeps, ui: UiState): string {
   const chapter = d.chapters.find((c) => c.id === s.chapter)!
   const inChapter = d.interviewBank.filter((q) => q.chapter === s.chapter)
   const index = inChapter.findIndex((q) => q.id === s.current)
@@ -210,6 +235,7 @@ function interviewQuestionScreen(s: InterviewState, d: RenderDeps): string {
       <span class="tape-label">${esc(chapter.label)}</span>
       <p class="muted">Question ${index + 1} sur ${inChapter.length}</p>
     </div>
+    ${recorderBar(ui.recorder, ui.sending)}
     <div class="q-card">
       <span class="corner tl" aria-hidden="true"></span><span class="corner tr" aria-hidden="true"></span>
       <span class="corner bl" aria-hidden="true"></span><span class="corner br" aria-hidden="true"></span>
@@ -255,20 +281,21 @@ function gameScreen(s: GameState, d: RenderDeps): string {
   return screens[s.phase]()
 }
 
-function interviewScreen(s: InterviewState, d: RenderDeps): string {
+function interviewScreen(s: InterviewState, d: RenderDeps, ui: UiState): string {
   const screens: Record<InterviewState['phase'], () => string> = {
     intro: () => introScreen(d),
     chapitres: () => chaptersScreen(s, d),
-    question: () => interviewQuestionScreen(s, d),
+    question: () => interviewQuestionScreen(s, d, ui),
     fin: () => interviewEndScreen(s, d),
   }
   return screens[s.phase]()
 }
 
-export function render(root: HTMLElement, app: AppState, d: RenderDeps): void {
+export function render(root: HTMLElement, app: AppState, d: RenderDeps, ui: UiState): void {
   const [name, html] =
     app.mode === 'jeu' ? [app.game.phase, gameScreen(app.game, d)]
-    : app.mode === 'interview' ? [`iv-${app.interview.phase}`, interviewScreen(app.interview, d)]
+    : app.mode === 'interview' ? [`iv-${app.interview.phase}`, interviewScreen(app.interview, d, ui)]
     : ['accueil', homeScreen()]
-  root.innerHTML = `<section class="screen screen-${name}">${html}</section>`
+  const toast = ui.toast ? `<div class="toast" role="status">${esc(ui.toast)}</div>` : ''
+  root.innerHTML = `<section class="screen screen-${name}">${html}</section>${toast}`
 }
