@@ -6,6 +6,7 @@ import { themes } from './data/themes'
 import { exportEvents, loadState, logUnlock, saveState } from './storage/local'
 import { newId } from './ui/newId'
 import { render, type UiState } from './ui/render'
+import { syncWakeLock } from './ui/wakeLock'
 
 const root = document.querySelector<HTMLElement>('#app')!
 const deps = { bank: questions, rng: Math.random, newId }
@@ -21,6 +22,7 @@ function dispatch(action: Action): void {
 
 function paint(): void {
   render(root, state, ui, { themes, questions })
+  syncWakeLock(state.phase)
 }
 
 function download(name: string, content: string): void {
