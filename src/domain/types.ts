@@ -1,10 +1,11 @@
 export type AgeBand = 'enfant' | 'adulte' | 'aine'
 export type BandRule = AgeBand | 'toutes'
 export type Tier = 'gratuit' | 'premium'
-export type ThemeId = 'a' | 'b' | 'c' | 'd'
+export type ThemeId = 'enfance' | 'emotions' | 'souvenirs' | 'amour' | 'famille' | 'voyages' | 'ecole' | 'premieres'
 
 export type Player = { id: string; name: string; age: number }
-export type Theme = { id: ThemeId; label: string; icon: string }
+/** `icon` : contenu SVG au trait (viewBox 0 0 24 24, stroke currentColor) ; `tint` : fond pastel de la vignette. */
+export type Theme = { id: ThemeId; label: string; icon: string; tint: string }
 export type Question = {
   id: string
   text: string

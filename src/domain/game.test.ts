@@ -3,8 +3,8 @@ import { currentAsker, initialState, reduce, type Action, type Deps } from './ga
 import type { GameState, Question } from './types'
 
 const bank: Question[] = [
-  { id: 'q1', text: 'Q1', theme: 'a', asker: 'toutes', answerer: 'toutes', tier: 'gratuit' },
-  { id: 'q2', text: 'Q2', theme: 'a', asker: 'toutes', answerer: 'toutes', tier: 'gratuit' },
+  { id: 'q1', text: 'Q1', theme: 'enfance', asker: 'toutes', answerer: 'toutes', tier: 'gratuit' },
+  { id: 'q2', text: 'Q2', theme: 'enfance', asker: 'toutes', answerer: 'toutes', tier: 'gratuit' },
 ]
 let counter = 0
 const deps: Deps = { bank, rng: () => 0, newId: () => `p${++counter}` }
@@ -66,19 +66,19 @@ describe('tour', () => {
   })
   test('choisir un thème tire une question et la marque posée', () => {
     const s = started()
-    const next = run(s, { type: 'chooseTarget', id: s.players[1]!.id }, { type: 'chooseTheme', theme: 'a' })
+    const next = run(s, { type: 'chooseTarget', id: s.players[1]!.id }, { type: 'chooseTheme', theme: 'enfance' })
     expect(next.phase).toBe('question')
     expect(next.current).toBe('q1')
     expect(next.asked).toEqual(['q1'])
   })
   test('ignore un thème sans question disponible', () => {
     const s = started()
-    const next = run(s, { type: 'chooseTarget', id: s.players[1]!.id }, { type: 'chooseTheme', theme: 'd' })
+    const next = run(s, { type: 'chooseTarget', id: s.players[1]!.id }, { type: 'chooseTheme', theme: 'voyages' })
     expect(next.phase).toBe('theme')
   })
   test('répondu passe au joueur suivant et compte un souvenir', () => {
     const s = started()
-    const next = run(s, { type: 'chooseTarget', id: s.players[1]!.id }, { type: 'chooseTheme', theme: 'a' }, { type: 'answered' })
+    const next = run(s, { type: 'chooseTarget', id: s.players[1]!.id }, { type: 'chooseTheme', theme: 'enfance' }, { type: 'answered' })
     expect(next.phase).toBe('tour')
     expect(next.turn).toBe(1)
     expect(next.memories).toBe(1)
@@ -89,8 +89,8 @@ describe('tour', () => {
     const [a, b] = s.players as [GameState['players'][0], GameState['players'][0]]
     const end = run(
       s,
-      { type: 'chooseTarget', id: b.id }, { type: 'chooseTheme', theme: 'a' }, { type: 'answered' },
-      { type: 'chooseTarget', id: a.id }, { type: 'chooseTheme', theme: 'a' }, { type: 'answered' },
+      { type: 'chooseTarget', id: b.id }, { type: 'chooseTheme', theme: 'enfance' }, { type: 'answered' },
+      { type: 'chooseTarget', id: a.id }, { type: 'chooseTheme', theme: 'enfance' }, { type: 'answered' },
     )
     expect(end.phase).toBe('fin')
     expect(end.memories).toBe(2)
@@ -120,7 +120,7 @@ describe('homonymes et abandon', () => {
   })
   test('abandonner en cours de partie revient aux joueurs sans compter de souvenir', () => {
     const s = reduce(twoPlayers(), { type: 'start' }, deps)
-    const mid = run(s, { type: 'chooseTarget', id: s.players[1]!.id }, { type: 'chooseTheme', theme: 'a' })
+    const mid = run(s, { type: 'chooseTarget', id: s.players[1]!.id }, { type: 'chooseTheme', theme: 'enfance' })
     const out = reduce(mid, { type: 'abandon' }, deps)
     expect(out.phase).toBe('joueurs')
     expect(out.players).toHaveLength(2)

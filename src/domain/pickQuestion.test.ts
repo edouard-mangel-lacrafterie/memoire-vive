@@ -3,10 +3,10 @@ import { pickQuestion } from './pickQuestion'
 import type { Question } from './types'
 
 const q = (id: string, over: Partial<Question> = {}): Question => ({
-  id, text: id, theme: 'a', asker: 'toutes', answerer: 'toutes', tier: 'gratuit', ...over,
+  id, text: id, theme: 'enfance', asker: 'toutes', answerer: 'toutes', tier: 'gratuit', ...over,
 })
 const first = () => 0
-const base = { askerBand: 'adulte', answererBand: 'aine', theme: 'a', asked: [], rng: first } as const
+const base = { askerBand: 'adulte', answererBand: 'aine', theme: 'enfance', asked: [], rng: first } as const
 
 test('préfère une correspondance exacte inédite', () => {
   const bank = [q('large'), q('exact', { asker: 'adulte', answerer: 'aine' })]
@@ -29,7 +29,7 @@ test('ne tire jamais une question premium', () => {
 })
 
 test('ignore les autres thèmes', () => {
-  const bank = [q('b', { theme: 'b' })]
+  const bank = [q('b', { theme: 'voyages' })]
   expect(pickQuestion(bank, base)).toBeUndefined()
 })
 
