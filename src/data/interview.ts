@@ -2,15 +2,15 @@ import type { Chapter, InterviewQuestion } from '../domain/types'
 
 // Chapitres et questions traduits de docs/family-interview-questions.md, dans l'ordre du document.
 export const chapters: readonly Chapter[] = [
-  { id: 'voix', label: 'Ta voix', tint: '#EBCFCB',
+  { id: 'voix', label: 'Ta voix', tint: '#FCE192',
     icon: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/><path d="M8.5 21h7"/>' },
-  { id: 'enfance', label: 'Le monde de ton enfance', tint: '#C9D6E8',
+  { id: 'enfance', label: 'Le monde de ton enfance', tint: '#C3ECF8',
     icon: '<ellipse cx="12" cy="9.5" rx="5.5" ry="6.5"/><path d="M12 16v1.5"/><path d="M12 17.5c-1.5 1.2 1.5 2.3 0 3.5"/>' },
-  { id: 'vie', label: 'Le fil de ta vie', tint: '#EDDBB0',
+  { id: 'vie', label: 'Le fil de ta vie', tint: '#7CEFD5',
     icon: '<path d="M4 19c3-7 6-7 8-3s5 4 8-9"/><circle cx="4" cy="19" r="1.5"/><circle cx="20" cy="7" r="1.5"/>' },
-  { id: 'famille', label: "L'histoire de la famille", tint: '#CFDCC6',
+  { id: 'famille', label: "L'histoire de la famille", tint: '#E6CCEC',
     icon: '<path d="M4 11l8-7 8 7"/><path d="M6 10v10h12V10"/><path d="M10 20v-5h4v5"/>' },
-  { id: 'recul', label: 'Avec le recul', tint: '#D9CFE6',
+  { id: 'recul', label: 'Avec le recul', tint: '#C3ECF8',
     icon: '<rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3.5"/><path d="M8 6l1.5-2.5h5L16 6"/>' },
 ]
 

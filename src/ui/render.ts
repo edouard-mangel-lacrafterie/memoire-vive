@@ -37,18 +37,19 @@ function topBar(context?: { action: string; label: string }): string {
 
 function homeScreen(): string {
   return `
+    <div class="stripes" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
     <div class="heading center">
-      <h1>Mémoires vives !</h1>
-      <p class="hand-muted">les histoires de famille, à voix haute</p>
+      <span class="eyebrow">Les histoires de famille, à voix haute</span>
+      <h1><span class="hl">Mémoires vives&nbsp;!</span></h1>
     </div>
     <div class="stack modes">
-      <button class="polaroid mode-card" data-action="mode" data-mode="jeu" style="--tint:#CFDCC6;--tilt:-1deg">
+      <button class="polaroid mode-card" data-action="mode" data-mode="jeu" style="--tint:#7CEFD5;--tilt:-1deg">
         <span class="tape" aria-hidden="true"></span>
         <span class="tile-photo">${svg(ICON_TABLE, 44, 1.5)}</span>
         <span class="hand-label">Jeu en famille</span>
         <span class="mode-desc">Autour de la table, chacun lit une question à son tour. Qui veut répond, les autres écoutent.</span>
       </button>
-      <button class="polaroid mode-card" data-action="mode" data-mode="interview" style="--tint:#EBCFCB;--tilt:1deg">
+      <button class="polaroid mode-card" data-action="mode" data-mode="interview" style="--tint:#FCE192;--tilt:1deg">
         <span class="tape" aria-hidden="true"></span>
         <span class="tile-photo">${svg(ICON_MIC, 44, 1.5)}</span>
         <span class="hand-label">Interview</span>
@@ -65,7 +66,7 @@ function rulesScreen(d: RenderDeps): string {
   return `${topBar()}
     <div class="heading">
       <p class="eyebrow left">Bienvenue autour de la table</p>
-      <h1 class="h-md">${esc(r.title)}</h1>
+      <h1 class="h-md"><span class="hl">${esc(r.title)}</span></h1>
       <p class="muted">${esc(r.welcome)}</p>
     </div>
     <section class="polaroid offer">
@@ -85,7 +86,7 @@ function rulesScreen(d: RenderDeps): string {
       <p class="muted">${esc(r.difficult.intro)}</p>
       <ul class="probes big">${tips}</ul>
     </details>
-    <button class="btn-primary" data-action="acceptRules">C'est compris, on s'installe</button>`
+    <button class="btn-primary" data-action="acceptRules">C'est compris, on s'installe ${svg(ICON_ARROW, 22, 2.5)}</button>`
 }
 
 function playersScreen(s: GameState): string {
@@ -101,10 +102,10 @@ function playersScreen(s: GameState): string {
   const missing = Math.max(0, 2 - s.players.length)
   const cta = missing
     ? `<p class="cant-start">Encore ${plural(missing, 'personne', 'personnes')} pour commencer</p>`
-    : `<button class="btn-primary" data-action="start">Choisir la partie</button>`
+    : `<button class="btn-primary" data-action="start">Choisir la partie ${svg(ICON_ARROW, 22, 2.5)}</button>`
   return `${topBar()}
     <div class="heading">
-      <h1>Qui est là&nbsp;?</h1>
+      <h1>Qui est <span class="hl yellow">là</span>&nbsp;?</h1>
       <p class="muted">Les prénoms de chacun autour de la table. On lira les questions à tour de rôle.</p>
     </div>
     <ul class="list">${rows}</ul>
@@ -116,6 +117,7 @@ function playersScreen(s: GameState): string {
 }
 
 const TILT = [-1.2, 1, 0.8, -0.8, 1.2, -1, -0.6, 0.9]
+const ICON_ARROW = '<path d="M4 12.5c5-1 10-1 15-.5M13.5 6.5l6 5.5-5.5 6"/>'
 const ICON_SHUFFLE = '<path d="M3 7h4l8 10h6"/><path d="M18 14l3 3-3 3"/><path d="M3 17h4l2.5-3"/><path d="M14.5 10L17 7h4"/><path d="M18 4l3 3-3 3"/>'
 
 function choiceScreen(s: GameState, d: RenderDeps): string {
@@ -131,7 +133,7 @@ function choiceScreen(s: GameState, d: RenderDeps): string {
       </button>`,
     )
     .join('')
-  const mix = `<button class="tile polaroid wide-tile" data-action="configure" data-level="melange" style="--tilt:0.6deg;--tint:#EBCFCB">
+  const mix = `<button class="tile polaroid wide-tile" data-action="configure" data-level="melange" style="--tilt:0.6deg;--tint:#E6CCEC">
         <span class="tile-photo">${svg(ICON_SHUFFLE, 40, 1.5)}</span>
         <span class="hand-label">Mélanger</span>
         <span class="tile-hint">un peu de tout, au hasard</span>
@@ -139,7 +141,7 @@ function choiceScreen(s: GameState, d: RenderDeps): string {
   const context = s.asked.length > 0 ? { action: 'finish', label: 'Terminer' } : undefined
   return `${topBar(context)}
     <div class="heading">
-      <h1 class="h-md">Choisissez votre partie</h1>
+      <h1 class="h-md">Choisissez <span class="hl lilac">votre partie</span></h1>
       <p class="muted">Le temps dont vous disposez, puis le type de questions. Vous pourrez changer de niveau à tout moment.</p>
     </div>
     <div class="chips" role="radiogroup" aria-label="Durée">${chips}</div>
@@ -160,8 +162,7 @@ function questionScreen(s: GameState, d: RenderDeps): string {
       <p><strong>${esc(reader.name)}</strong> lit la question à voix haute</p>
     </div>
     <div class="q-card">
-      <span class="corner tl" aria-hidden="true"></span><span class="corner tr" aria-hidden="true"></span>
-      <span class="corner bl" aria-hidden="true"></span><span class="corner br" aria-hidden="true"></span>
+      <span class="tape" aria-hidden="true"></span>
       <p class="question">${esc(q.text)}</p>
       <p class="hand-muted">${esc(d.rules.reminder)}</p>
     </div>
@@ -198,7 +199,7 @@ function endScreen(s: GameState, d: RenderDeps): string {
 function introScreen(d: RenderDeps): string {
   return `${topBar()}
     <div class="heading">
-      <h1 class="h-md">Avant de commencer</h1>
+      <h1 class="h-md">Avant de <span class="hl">commencer</span></h1>
       <p class="muted">Quelques questions par visite suffisent. Laisse la personne divaguer quand un bon souvenir remonte, garde des photos ou des lettres à portée de main.</p>
     </div>
     <section class="polaroid offer">
@@ -206,7 +207,7 @@ function introScreen(d: RenderDeps): string {
       <p class="eyebrow left">À demander avant d'enregistrer</p>
       <p class="question sm">${esc(d.consent)}</p>
     </section>
-    <button class="btn-primary" data-action="iv-start">Ouvrir les chapitres</button>`
+    <button class="btn-primary" data-action="iv-start">Ouvrir les chapitres ${svg(ICON_ARROW, 22, 2.5)}</button>`
 }
 
 function chaptersScreen(s: InterviewState, d: RenderDeps): string {
@@ -223,7 +224,7 @@ function chaptersScreen(s: InterviewState, d: RenderDeps): string {
     .join('')
   return `${topBar({ action: 'iv-finish', label: 'Terminer' })}
     <div class="heading">
-      <h1 class="h-md">Quel chapitre&nbsp;?</h1>
+      <h1 class="h-md">Quel <span class="hl sky">chapitre</span>&nbsp;?</h1>
       <p class="muted">${plural(s.done.length, 'question explorée', 'questions explorées')} sur ${d.interviewBank.length}.</p>
     </div>
     <div class="grid">${tiles}</div>`
@@ -261,8 +262,7 @@ function interviewQuestionScreen(s: InterviewState, d: RenderDeps, ui: UiState):
     </div>
     ${recorderBar(ui.recorder, ui.sending)}
     <div class="q-card">
-      <span class="corner tl" aria-hidden="true"></span><span class="corner tr" aria-hidden="true"></span>
-      <span class="corner bl" aria-hidden="true"></span><span class="corner br" aria-hidden="true"></span>
+      <span class="tape" aria-hidden="true"></span>
       <p class="question">${esc(q.text)}</p>
       <p class="hand-muted">à lire à voix haute</p>
     </div>
