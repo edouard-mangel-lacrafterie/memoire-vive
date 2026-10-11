@@ -2,7 +2,7 @@ import type { AppState } from '../domain/types'
 
 /** L'écran reste allumé pendant qu'une partie ou un entretien est en cours (téléphone posé sur la table). */
 export function shouldKeepAwake(app: AppState): boolean {
-  if (app.mode === 'jeu') return app.game.phase === 'tour' || app.game.phase === 'theme' || app.game.phase === 'question'
+  if (app.mode === 'jeu') return app.game.phase === 'choix' || app.game.phase === 'question'
   if (app.mode === 'interview') return app.interview.phase === 'chapitres' || app.interview.phase === 'question'
   return false
 }

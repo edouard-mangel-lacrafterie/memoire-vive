@@ -1,72 +1,80 @@
-import { ageBand } from './ageBand'
 import { pickQuestion, type Rng } from './pickQuestion'
-import type { GameState, Player, Question, ThemeId } from './types'
+import type { Duration, GameState, LevelChoice, Player, Question } from './types'
 
 export type Action =
-  | { type: 'addPlayer'; name: string; age: number }
+  | { type: 'addPlayer'; name: string }
   | { type: 'removePlayer'; id: string }
+  | { type: 'acceptRules' }
   | { type: 'start' }
-  | { type: 'chooseTarget'; id: string }
-  | { type: 'chooseTheme'; theme: ThemeId }
-  | { type: 'answered' }
+  | { type: 'configure'; duration: Duration; level: LevelChoice }
+  | { type: 'next' }
+  | { type: 'skip' }
+  | { type: 'changeLevel' }
+  | { type: 'finish' }
   | { type: 'restart' }
   | { type: 'abandon' }
 
 export type Deps = { bank: readonly Question[]; rng: Rng; newId: () => string }
 
-export const initialState: GameState = { phase: 'joueurs', players: [], turn: 0, asked: [], memories: 0 }
+export const initialState: GameState = { phase: 'regles', players: [], turn: 0, asked: [], shared: 0 }
 
-export function currentAsker(state: GameState): Player | undefined {
+/** Nombre de questions suggéré par durée (étape 2 des règles). Ce n'est pas une limite : on peut continuer. */
+export const TARGET: Record<Duration, number> = { courte: 6, moyenne: 12, longue: 20 }
+
+export const DURATION_LABEL: Record<Duration, string> = { courte: '15 min', moyenne: '30 min', longue: '1 h' }
+
+export function currentReader(state: GameState): Player | undefined {
   return state.players[state.turn]
 }
 
-const validAge = (age: number) => Number.isInteger(age) && age >= 0 && age <= 120
+export const reachedTarget = (s: GameState): boolean => s.duration !== undefined && s.asked.length >= TARGET[s.duration]
+
+function draw(s: GameState, deps: Deps, turn: number): GameState {
+  if (!s.level) return s
+  const q = pickQuestion(deps.bank, { level: s.level, asked: s.asked, rng: deps.rng })
+  if (!q) return s
+  return { ...s, phase: 'question', turn, current: q.id, asked: [...s.asked, q.id] }
+}
 
 export function reduce(state: GameState, action: Action, deps: Deps): GameState {
   switch (action.type) {
     case 'addPlayer': {
       const name = action.name.trim()
-      if (state.phase !== 'joueurs' || name === '' || !validAge(action.age)) return state
-      return { ...state, players: [...state.players, { id: deps.newId(), name, age: action.age }] }
+      if (state.phase !== 'joueurs' || name === '') return state
+      return { ...state, players: [...state.players, { id: deps.newId(), name }] }
     }
     case 'removePlayer':
       if (state.phase !== 'joueurs') return state
       return { ...state, players: state.players.filter((p) => p.id !== action.id) }
+    case 'acceptRules':
+      return state.phase === 'regles' ? { ...state, phase: 'joueurs' } : state
     case 'start':
       if (state.phase !== 'joueurs' || state.players.length < 2) return state
-      return { ...state, phase: 'tour', turn: 0, asked: [], memories: 0 }
-    case 'chooseTarget': {
-      const asker = currentAsker(state)
-      const target = state.players.find((p) => p.id === action.id)
-      if (state.phase !== 'tour' || !asker || !target || target.id === asker.id) return state
-      return { ...state, phase: 'theme', target: target.id }
-    }
-    case 'chooseTheme': {
-      const asker = currentAsker(state)
-      const target = state.players.find((p) => p.id === state.target)
-      if (state.phase !== 'theme' || !asker || !target) return state
-      const q = pickQuestion(deps.bank, {
-        askerBand: ageBand(asker.age),
-        answererBand: ageBand(target.age),
-        theme: action.theme,
-        asked: state.asked,
-        rng: deps.rng,
-      })
-      if (!q) return state
-      return { ...state, phase: 'question', theme: action.theme, current: q.id, asked: [...state.asked, q.id] }
-    }
-    case 'answered': {
+      return { ...state, phase: 'choix', turn: 0, asked: [], shared: 0 }
+    case 'configure':
+      if (state.phase !== 'choix') return state
+      return draw({ ...state, duration: action.duration, level: action.level }, deps, state.turn)
+    case 'next':
+    case 'skip': {
       if (state.phase !== 'question') return state
-      const { target: _t, theme: _th, current: _c, ...rest } = state
-      const memories = state.memories + 1
-      const last = state.turn + 1 >= state.players.length
-      return last ? { ...rest, phase: 'fin', memories } : { ...rest, phase: 'tour', turn: state.turn + 1, memories }
+      const shared = action.type === 'next' ? state.shared + 1 : state.shared
+      return draw({ ...state, shared }, deps, (state.turn + 1) % state.players.length)
+    }
+    case 'changeLevel': {
+      if (state.phase !== 'question') return state
+      const { current: _c, ...rest } = state
+      return { ...rest, phase: 'choix' }
+    }
+    case 'finish': {
+      if (state.phase !== 'question' && state.phase !== 'choix') return state
+      const { current: _c, ...rest } = state
+      return { ...rest, phase: 'fin' }
     }
     case 'restart':
       if (state.phase !== 'fin') return state
-      return { ...initialState, players: state.players }
+      return { ...initialState, phase: 'joueurs', players: state.players }
     case 'abandon':
-      if (state.phase === 'joueurs') return state
-      return { ...initialState, players: state.players }
+      if (state.phase === 'regles' || state.phase === 'joueurs') return state
+      return { ...initialState, phase: 'joueurs', players: state.players }
   }
 }

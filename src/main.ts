@@ -2,10 +2,11 @@ import { reduceApp, type AppAction } from './domain/app'
 import type { Action as GameAction } from './domain/game'
 import type { InterviewAction } from './domain/interview'
 import { recoverState, type Catalog } from './domain/validState'
-import type { AppState, ChapterId, ThemeId } from './domain/types'
+import type { AppState, ChapterId, Duration, LevelChoice } from './domain/types'
 import { chapters, consent, followUp, interviewQuestions } from './data/interview'
+import { levels } from './data/levels'
 import { questions } from './data/questions'
-import { themes } from './data/themes'
+import { rules } from './data/rules'
 import { loadState, saveState } from './storage/local'
 import { newId } from './ui/newId'
 import { formatTime, idleRecorder, reduceRecorder, type RecorderEvent } from './ui/recorder'
@@ -13,7 +14,7 @@ import { render, type UiState } from './ui/render'
 import { syncWakeLock } from './ui/wakeLock'
 
 const root = document.querySelector<HTMLElement>('#app')!
-const catalog: Catalog = { bank: questions, themes, interviewBank: interviewQuestions, chapters }
+const catalog: Catalog = { bank: questions, levels, interviewBank: interviewQuestions, chapters }
 const deps = { ...catalog, rng: Math.random, newId }
 let state = recoverState(loadState(), catalog)
 const ui: UiState = { recorder: idleRecorder, sending: false, toast: undefined }
@@ -39,7 +40,7 @@ const game = (action: GameAction) => dispatch({ type: 'game', action })
 const interview = (action: InterviewAction) => dispatch({ type: 'interview', action })
 
 function paint(): void {
-  render(root, state, { ...catalog, followUp, consent }, ui)
+  render(root, state, { ...catalog, followUp, consent, rules }, ui)
   syncWakeLock(state)
 }
 
@@ -79,18 +80,23 @@ root.addEventListener('click', (e) => {
   const el = (e.target as HTMLElement).closest<HTMLElement>('[data-action]')
   if (!el) return
   e.preventDefault()
-  const { action, id, theme, mode, chapter } = el.dataset
+  const { action, id, level, mode, chapter } = el.dataset
   switch (action) {
     case 'mode': return dispatch({ type: 'chooseMode', mode: mode as 'jeu' | 'interview' })
     case 'home': return dispatch({ type: 'home' })
     case 'quit': return dispatch({ type: 'quit' })
     case 'removePlayer': return game({ type: 'removePlayer', id: id! })
+    case 'acceptRules': return game({ type: 'acceptRules' })
     case 'start': return game({ type: 'start' })
-    case 'chooseTarget': return game({ type: 'chooseTarget', id: id! })
-    case 'chooseTheme': return game({ type: 'chooseTheme', theme: theme as ThemeId })
-    case 'answered': return game({ type: 'answered' })
+    case 'configure': {
+      const duration = root.querySelector<HTMLInputElement>('input[name=duration]:checked')?.value as Duration | undefined
+      return game({ type: 'configure', duration: duration ?? 'courte', level: level as LevelChoice })
+    }
+    case 'next': return game({ type: 'next' })
+    case 'skip': return game({ type: 'skip' })
+    case 'changeLevel': return game({ type: 'changeLevel' })
+    case 'finish': return game({ type: 'finish' })
     case 'restart': return game({ type: 'restart' })
-    case 'abandon': return game({ type: 'abandon' })
     case 'iv-start': return interview({ type: 'start' })
     case 'iv-chooseChapter': return interview({ type: 'chooseChapter', chapter: chapter as ChapterId })
     case 'iv-next': return nextQuestion({ type: 'next' })
@@ -109,7 +115,7 @@ root.addEventListener('submit', (e) => {
   e.preventDefault()
   const data = new FormData(form)
   if (form.id === 'add-player') {
-    game({ type: 'addPlayer', name: String(data.get('name') ?? ''), age: Number(data.get('age')) })
+    game({ type: 'addPlayer', name: String(data.get('name') ?? '') })
     form.reset()
     form.querySelector<HTMLInputElement>('[name=name]')?.focus()
   }

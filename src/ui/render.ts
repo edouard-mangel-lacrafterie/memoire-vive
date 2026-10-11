@@ -1,10 +1,10 @@
-import { currentAsker } from '../domain/game'
-import { tableLevel } from '../domain/tableLevel'
+import { currentReader, DURATION_LABEL, reachedTarget, TARGET } from '../domain/game'
 import type { Catalog } from '../domain/validState'
 import type { AppState, GameState, InterviewState, Player } from '../domain/types'
+import type { rules } from '../data/rules'
 import { formatTime, type Recorder } from './recorder'
 
-export type RenderDeps = Catalog & { followUp: { lead: string; probes: readonly string[] }; consent: string }
+export type RenderDeps = Catalog & { followUp: { lead: string; probes: readonly string[] }; consent: string; rules: typeof rules }
 /** État d'interface non persisté : enregistreur simulé, transmission en cours, toast à afficher. */
 export type UiState = { recorder: Recorder; sending: boolean; toast: string | undefined }
 
@@ -46,7 +46,7 @@ function homeScreen(): string {
         <span class="tape" aria-hidden="true"></span>
         <span class="tile-photo">${svg(ICON_TABLE, 44, 1.5)}</span>
         <span class="hand-label">Jeu en famille</span>
-        <span class="mode-desc">Autour de la table, chacun pose une question à quelqu'un d'autre. Les questions s'adaptent aux âges.</span>
+        <span class="mode-desc">Autour de la table, chacun lit une question à son tour. Qui veut répond, les autres écoutent.</span>
       </button>
       <button class="polaroid mode-card" data-action="mode" data-mode="interview" style="--tint:#EBCFCB;--tilt:1deg">
         <span class="tape" aria-hidden="true"></span>
@@ -57,117 +57,141 @@ function homeScreen(): string {
     </div>`
 }
 
+function rulesScreen(d: RenderDeps): string {
+  const r = d.rules
+  const golden = r.golden.map((g, i) => `<li><strong>${i + 1}. ${esc(g.title)}</strong><span class="muted">${esc(g.text)}</span></li>`).join('')
+  const howTo = r.howTo.map((h) => `<li>${esc(h)}</li>`).join('')
+  const tips = r.difficult.tips.map((t) => `<li>${esc(t)}</li>`).join('')
+  return `${topBar()}
+    <div class="heading">
+      <p class="eyebrow left">Bienvenue autour de la table</p>
+      <h1 class="h-md">${esc(r.title)}</h1>
+      <p class="muted">${esc(r.welcome)}</p>
+    </div>
+    <section class="polaroid offer">
+      <span class="tape" aria-hidden="true"></span>
+      <p class="question sm">${esc(r.motto)}</p>
+    </section>
+    <section class="rules-block">
+      <h2>Comment jouer</h2>
+      <ul class="probes big">${howTo}</ul>
+    </section>
+    <section class="rules-block">
+      <h2>Les cinq règles d'or</h2>
+      <ol class="golden">${golden}</ol>
+    </section>
+    <details class="rules-block">
+      <summary>Et si une question est difficile ?</summary>
+      <p class="muted">${esc(r.difficult.intro)}</p>
+      <ul class="probes big">${tips}</ul>
+    </details>
+    <button class="btn-primary" data-action="acceptRules">C'est compris, on s'installe</button>`
+}
+
 function playersScreen(s: GameState): string {
   const rows = s.players
     .map(
       (p, i) => `<li class="row-card">
         <span class="rank" aria-hidden="true">${i + 1}</span>
         <span class="hand-name">${esc(p.name)}</span>
-        <span class="age">${p.age} ans</span>
         <button class="icon-btn" data-action="removePlayer" data-id="${p.id}" aria-label="Retirer ${esc(p.name)}">${svg(ICON_X, 22, 1.8)}</button>
       </li>`,
     )
     .join('')
   const missing = Math.max(0, 2 - s.players.length)
   const cta = missing
-    ? `<p class="cant-start">Encore ${plural(missing, 'joueur', 'joueurs')} pour commencer</p>`
-    : `<button class="btn-primary" data-action="start">Commencer la partie</button>`
+    ? `<p class="cant-start">Encore ${plural(missing, 'personne', 'personnes')} pour commencer</p>`
+    : `<button class="btn-primary" data-action="start">Choisir la partie</button>`
   return `${topBar()}
     <div class="heading">
-      <h1>Qui joue&nbsp;?</h1>
-      <p class="muted">Ajoute chaque personne autour de la table, avec son âge. Les questions s'adaptent.</p>
+      <h1>Qui est là&nbsp;?</h1>
+      <p class="muted">Les prénoms de chacun autour de la table. On lira les questions à tour de rôle.</p>
     </div>
     <ul class="list">${rows}</ul>
     <form id="add-player" class="add-form" autocomplete="off">
       <div class="field grow"><label for="name">Prénom</label><input id="name" name="name" placeholder="Mamie" required maxlength="30" /></div>
-      <div class="field age-field"><label for="age">Âge</label><input id="age" name="age" type="number" inputmode="numeric" placeholder="72" min="0" max="120" required /></div>
       <button class="btn-outline" type="submit">Ajouter</button>
     </form>
     ${cta}`
 }
 
-function turnScreen(s: GameState): string {
-  const asker = currentAsker(s)!
-  const targets = s.players
-    .filter((p) => p.id !== asker.id)
-    .map(
-      (p) => `<button class="target" data-action="chooseTarget" data-id="${p.id}">
-        <span class="hand-name big">${esc(p.name)}</span>
-        <span class="age">${p.age} ans</span>
-        ${svg(ICON_CHEVRON, 20, 1.8)}
-      </button>`,
-    )
-    .join('')
-  return `${topBar()}
-    <div class="handoff">
-      <p class="eyebrow">C'est au tour de</p>
-      <div class="polaroid name-card">
-        <span class="tape" aria-hidden="true"></span>
-        <span class="hand-huge">${esc(asker.name)}</span>
-        <span class="age">${asker.age} ans</span>
-      </div>
-    </div>
-    <div class="heading">
-      <h2>À qui poses-tu ta question&nbsp;?</h2>
-    </div>
-    <div class="stack">${targets}</div>`
-}
-
 const TILT = [-1.2, 1, 0.8, -0.8, 1.2, -1, -0.6, 0.9]
+const ICON_SHUFFLE = '<path d="M3 7h4l8 10h6"/><path d="M18 14l3 3-3 3"/><path d="M3 17h4l2.5-3"/><path d="M14.5 10L17 7h4"/><path d="M18 4l3 3-3 3"/>'
 
-function themeScreen(s: GameState, d: RenderDeps): string {
-  const target = byId(s.players, s.target)!
-  const tiles = d.themes
+function choiceScreen(s: GameState, d: RenderDeps): string {
+  const chips = (['courte', 'moyenne', 'longue'] as const)
+    .map((dur) => `<label class="chip"><input type="radio" name="duration" value="${dur}" ${(s.duration ?? 'courte') === dur ? 'checked' : ''} /><span>${DURATION_LABEL[dur]}</span><small>≈ ${TARGET[dur]} questions</small></label>`)
+    .join('')
+  const tiles = d.levels
     .map(
-      (t, i) => `<button class="tile polaroid" data-action="chooseTheme" data-theme="${t.id}" style="--tilt:${TILT[i % TILT.length]}deg;--tint:${t.tint}">
-        <span class="tile-photo">${svg(t.icon, 40, 1.5)}</span>
-        <span class="hand-label">${esc(t.label)}</span>
+      (l, i) => `<button class="tile polaroid" data-action="configure" data-level="${l.id}" style="--tilt:${TILT[i % TILT.length]}deg;--tint:${l.tint}">
+        <span class="tile-photo">${svg(l.icon, 40, 1.5)}</span>
+        <span class="hand-label">${esc(l.label)}</span>
+        <span class="tile-hint">${esc(l.hint)}</span>
       </button>`,
     )
     .join('')
-  return `${topBar()}
+  const mix = `<button class="tile polaroid wide-tile" data-action="configure" data-level="melange" style="--tilt:0.6deg;--tint:#EBCFCB">
+        <span class="tile-photo">${svg(ICON_SHUFFLE, 40, 1.5)}</span>
+        <span class="hand-label">Mélanger</span>
+        <span class="tile-hint">un peu de tout, au hasard</span>
+      </button>`
+  const context = s.asked.length > 0 ? { action: 'finish', label: 'Terminer' } : undefined
+  return `${topBar(context)}
     <div class="heading">
-      <h1 class="h-md">Une question pour ${esc(target.name)}</h1>
-      <p class="muted">Choisis un thème.</p>
+      <h1 class="h-md">Choisissez votre partie</h1>
+      <p class="muted">Le temps dont vous disposez, puis le type de questions. Vous pourrez changer de niveau à tout moment.</p>
     </div>
-    <div class="grid">${tiles}</div>`
+    <div class="chips" role="radiogroup" aria-label="Durée">${chips}</div>
+    <div class="grid">${tiles}${mix}</div>`
 }
 
 function questionScreen(s: GameState, d: RenderDeps): string {
-  const asker = currentAsker(s)!
-  const target = byId(s.players, s.target)!
+  const reader = currentReader(s)!
   const q = d.bank.find((x) => x.id === s.current)!
-  const theme = d.themes.find((t) => t.id === s.theme)!
-  return `${topBar()}
+  const level = d.levels.find((l) => l.id === s.level)
+  const label = level ? level.label : 'Mélange'
+  const note = reachedTarget(s)
+    ? `<p class="target-note">Vous avez fait le tour prévu. Continuez si vous en avez envie, ou terminez quand la conversation s'achève.</p>`
+    : ''
+  return `${topBar({ action: 'finish', label: 'Terminer' })}
     <div class="q-head">
-      <span class="tape-label">${esc(theme.label)}</span>
-      <p><strong>${esc(asker.name)}</strong> demande à <strong>${esc(target.name)}</strong></p>
+      <span class="tape-label">${esc(label)}</span>
+      <p><strong>${esc(reader.name)}</strong> lit la question à voix haute</p>
     </div>
     <div class="q-card">
       <span class="corner tl" aria-hidden="true"></span><span class="corner tr" aria-hidden="true"></span>
       <span class="corner bl" aria-hidden="true"></span><span class="corner br" aria-hidden="true"></span>
       <p class="question">${esc(q.text)}</p>
-      <p class="hand-muted">à lire à voix haute</p>
+      <p class="hand-muted">${esc(d.rules.reminder)}</p>
     </div>
-    <button class="btn-primary tall" data-action="answered">
+    ${note}
+    <button class="btn-primary tall" data-action="next">
       ${svg(ICON_THUMB, 32, 1.5)}
-      <span>A répondu</span>
-      <span class="sub">un souvenir de plus</span>
-    </button>`
+      <span>Question suivante</span>
+      <span class="sub">une histoire partagée</span>
+    </button>
+    <div class="row-actions">
+      <button class="btn-outline grow" data-action="skip">Passer</button>
+      <button class="btn-outline grow" data-action="changeLevel">Changer de niveau</button>
+    </div>`
 }
 
-function endScreen(s: GameState): string {
+function endScreen(s: GameState, d: RenderDeps): string {
+  const prompts = d.rules.lastWord.map((w) => `<li>${esc(w)}</li>`).join('')
   return `
     <div class="heading">
-      <h1>${plural(s.memories, 'souvenir partagé', 'souvenirs partagés')}</h1>
-      <p class="hand-muted">niveau de la table : ${esc(tableLevel(s.memories))}</p>
+      <h1>${plural(s.shared, 'question partagée', 'questions partagées')}</h1>
+      <p class="hand-muted">ni gagnant, ni perdant</p>
     </div>
     <section class="polaroid offer">
       <span class="tape" aria-hidden="true"></span>
-      <h2>Merci d'avoir joué</h2>
-      <p class="muted">La table est chaude. On refait un tour ?</p>
-      <button class="btn-primary" data-action="restart">Rejouer</button>
+      <h2>Un dernier mot, si vous en avez envie</h2>
+      <ul class="probes big">${prompts}</ul>
+      <p class="muted">Vous pouvez aussi terminer simplement, sans bilan ni commentaire.</p>
     </section>
+    <p class="question sm center">${esc(d.rules.thanks)}</p>
+    <button class="btn-primary" data-action="restart">Rejouer</button>
     <button class="btn-outline wide" data-action="home">Changer de mode</button>`
 }
 
@@ -272,11 +296,11 @@ function interviewEndScreen(s: InterviewState, d: RenderDeps): string {
 
 function gameScreen(s: GameState, d: RenderDeps): string {
   const screens: Record<GameState['phase'], () => string> = {
+    regles: () => rulesScreen(d),
     joueurs: () => playersScreen(s),
-    tour: () => turnScreen(s),
-    theme: () => themeScreen(s, d),
+    choix: () => choiceScreen(s, d),
     question: () => questionScreen(s, d),
-    fin: () => endScreen(s),
+    fin: () => endScreen(s, d),
   }
   return screens[s.phase]()
 }

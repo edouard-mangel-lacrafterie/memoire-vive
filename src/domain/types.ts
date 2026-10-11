@@ -1,28 +1,23 @@
-export type AgeBand = 'enfant' | 'adulte' | 'aine'
-export type BandRule = AgeBand | 'toutes'
-export type ThemeId = 'enfance' | 'emotions' | 'souvenirs' | 'amour' | 'famille' | 'voyages' | 'ecole' | 'premieres'
+// Jeu en famille (règles « Nos histoires, nos liens ») : un lecteur lit, la table répond librement.
+export type Level = 'petites' | 'souvenirs' | 'valeurs' | 'personnelles'
+export type LevelChoice = Level | 'melange'
+export type Duration = 'courte' | 'moyenne' | 'longue'
 
-export type Player = { id: string; name: string; age: number }
+export type Player = { id: string; name: string }
 /** `icon` : contenu SVG au trait (viewBox 0 0 24 24, stroke currentColor) ; `tint` : fond pastel de la vignette. */
-export type Theme = { id: ThemeId; label: string; icon: string; tint: string }
-export type Question = {
-  id: string
-  text: string
-  theme: ThemeId
-  asker: BandRule
-  answerer: BandRule
-}
+export type LevelInfo = { id: Level; label: string; hint: string; icon: string; tint: string }
+export type Question = { id: string; text: string; level: Level }
 
-export type Phase = 'joueurs' | 'tour' | 'theme' | 'question' | 'fin'
+export type Phase = 'regles' | 'joueurs' | 'choix' | 'question' | 'fin'
 export type GameState = {
   phase: Phase
   players: Player[]
   turn: number
-  target?: string
-  theme?: ThemeId
+  duration?: Duration
+  level?: LevelChoice
   current?: string
   asked: string[]
-  memories: number
+  shared: number
 }
 
 // Mode interview : un aîné raconte, un proche lit les questions chapitre par chapitre.

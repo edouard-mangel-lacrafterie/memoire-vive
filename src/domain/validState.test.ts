@@ -1,17 +1,17 @@
 import { expect, test } from 'vitest'
 import { recoverState, type Catalog } from './validState'
 import { initialApp } from './app'
-import type { AppState, GameState, InterviewState, Question, Theme } from './types'
+import type { AppState, GameState, InterviewState, Question } from './types'
 
-const themes: Theme[] = [{ id: 'enfance', label: 'Enfance', icon: '<path d="M0 0"/>', tint: '#C9D6E8' }]
-const bank: Question[] = [{ id: 'q1', text: 'Q', theme: 'enfance', asker: 'toutes', answerer: 'toutes' }]
+const bank: Question[] = [{ id: 'q1', text: 'Q', level: 'petites' }]
 const catalog: Catalog = {
-  bank, themes,
+  bank,
+  levels: [{ id: 'petites', label: 'Les petites histoires', hint: 'en douceur', icon: '<path d="M0 0"/>', tint: '#C9D6E8' }],
   interviewBank: [{ id: 'v1', chapter: 'voix', text: 'V1' }],
   chapters: [{ id: 'voix', label: 'Ta voix', icon: '<path d="M0 0"/>', tint: '#C9D6E8' }],
 }
-const players = [{ id: 'p1', name: 'Mamie', age: 72 }, { id: 'p2', name: 'Léo', age: 9 }]
-const game: GameState = { phase: 'question', players, turn: 0, target: 'p2', theme: 'enfance', current: 'q1', asked: ['q1'], memories: 0 }
+const players = [{ id: 'p1', name: 'Mamie' }, { id: 'p2', name: 'Léo' }]
+const game: GameState = { phase: 'question', players, turn: 0, duration: 'courte', level: 'petites', current: 'q1', asked: ['q1'], shared: 0 }
 const interview: InterviewState = { phase: 'question', chapter: 'voix', current: 'v1', done: [] }
 const ok: AppState = { mode: 'jeu', game, interview }
 
@@ -19,9 +19,16 @@ test('garde un état cohérent tel quel', () => {
   expect(recoverState(ok, catalog)).toEqual(ok)
 })
 
-test("l'ancien format (partie seule, sans mode) repart à l'accueil avec ses joueurs", () => {
-  const r = recoverState(game, catalog)
+test('une partie en mode mélange est cohérente', () => {
+  const s = { ...ok, game: { ...game, level: 'melange' as const } }
+  expect(recoverState(s, catalog)).toEqual(s)
+})
+
+test("l'ancien format (joueurs avec âge, phases d'avant) garde les prénoms et repart aux joueurs", () => {
+  const legacy = { phase: 'tour', players: [{ id: 'p1', name: 'Mamie', age: 72 }, { id: 'p2', name: 'Léo', age: 9 }], turn: 0, asked: [], memories: 0 }
+  const r = recoverState(legacy, catalog)
   expect(r.mode).toBe('accueil')
+  expect(r.game.phase).toBe('joueurs')
   expect(r.game.players).toEqual(players)
 })
 
@@ -33,22 +40,26 @@ test.each<[string, unknown]>([
   expect(recoverState(broken, catalog).mode).toBe('accueil')
 })
 
+test('sans joueur connu, la partie repart aux règles', () => {
+  expect(recoverState({ ...ok, game: { ...game, players: [] } }, catalog).game.phase).toBe('regles')
+})
+
 test.each<[string, Record<string, unknown>]>([
-  ['phase inconnue', { phase: 'bizarre' as GameState['phase'] }],
+  ['phase inconnue', { phase: 'bizarre' }],
   ['question disparue de la banque', { current: 'a-99' }],
-  ['thème inconnu', { theme: 'zzz' as GameState['theme'] }],
-  ['cible inconnue', { target: 'nope' }],
+  ['niveau inconnu', { level: 'zzz' }],
+  ['durée inconnue', { duration: 'infinie' }],
   ['turn hors bornes', { turn: 5 }],
-  ['partie commencée avec un seul joueur', { phase: 'tour', players: [players[0]!] }],
+  ['partie commencée avec un seul joueur', { phase: 'choix', players: [players[0]!] }],
 ])('une partie incohérente repart aux joueurs en gardant les joueurs valides : %s', (_label, patch) => {
   const r = recoverState({ ...ok, game: { ...game, ...patch } }, catalog)
   expect(r.game.phase).toBe('joueurs')
-  expect(r.game.memories).toBe(0)
+  expect(r.game.shared).toBe(0)
   expect(r.game.players.length).toBeGreaterThan(0)
 })
 
 test('les joueurs mal formés sont écartés', () => {
-  const r = recoverState({ ...ok, game: { ...initialApp.game, players: [players[0], { id: 'x' }, 'y'] } }, catalog)
+  const r = recoverState({ ...ok, game: { ...initialApp.game, phase: 'joueurs', players: [players[0], { id: 'x' }, 'y'] } }, catalog)
   expect(r.game.players).toEqual([players[0]])
 })
 

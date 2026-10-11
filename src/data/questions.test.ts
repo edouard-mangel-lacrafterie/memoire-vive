@@ -1,22 +1,19 @@
 import { expect, test } from 'vitest'
-import { pickQuestion } from '../domain/pickQuestion'
-import type { AgeBand } from '../domain/types'
 import { questions } from './questions'
-import { themes } from './themes'
-
-const bands: AgeBand[] = ['enfant', 'adulte', 'aine']
+import { levels } from './levels'
 
 test('ids uniques', () => {
   expect(new Set(questions.map((q) => q.id)).size).toBe(questions.length)
 })
 
-test('chaque thème a au moins une question pour chaque couple de tranches', () => {
-  for (const theme of themes) {
-    for (const askerBand of bands) {
-      for (const answererBand of bands) {
-        const q = pickQuestion(questions, { askerBand, answererBand, theme: theme.id, asked: [], rng: () => 0 })
-        expect(q, `${theme.id} ${askerBand}→${answererBand}`).toBeDefined()
-      }
-    }
+test('chaque niveau a au moins de quoi tenir une partie courte (6 questions)', () => {
+  for (const level of levels) {
+    expect(questions.filter((q) => q.level === level.id).length, level.id).toBeGreaterThanOrEqual(6)
+  }
+})
+
+test('chaque question appartient à un niveau connu', () => {
+  for (const q of questions) {
+    expect(levels.some((l) => l.id === q.level), q.id).toBe(true)
   }
 })

@@ -27,7 +27,7 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 a { color: var(--ink); }
 #app { max-width: 430px; margin: 0 auto; }
 .screen { min-height: 100dvh; padding: 36px 24px 24px; display: flex; flex-direction: column; gap: 20px; }
-.screen-tour, .screen-theme, .screen-question, .screen-joueurs,
+.screen-regles, .screen-joueurs, .screen-choix, .screen-question,
 .screen-iv-intro, .screen-iv-chapitres, .screen-iv-question { padding-top: 8px; }
 
 h1, h2 { margin: 0; font-family: var(--serif); font-weight: 400; line-height: 1.1; letter-spacing: -0.01em; }
@@ -111,6 +111,32 @@ p { margin: 0; }
 .corner.br { bottom: -4px; right: -4px; clip-path: polygon(100% 0, 0 100%, 100% 100%); }
 .question { font-family: var(--serif); font-size: 29px; line-height: 1.3; text-wrap: balance; }
 .question.sm { font-size: 21px; }
+
+/* règles */
+.rules-block { display: flex; flex-direction: column; gap: 10px; }
+.rules-block summary { font-family: var(--serif); font-size: 19px; line-height: 1.2; cursor: pointer; }
+.golden { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 12px; }
+.golden li { display: flex; flex-direction: column; gap: 2px; padding-left: 14px; border-left: 3px solid var(--tape); }
+.golden strong { font-size: 16px; }
+.golden .muted { font-size: 15px; line-height: 1.4; }
+.probes.big { font-size: 16px; color: var(--ink); }
+
+/* choix de la partie */
+.chips { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.chip { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 64px; padding: 8px 6px; border: 1.5px solid var(--ink); border-radius: 12px; background: transparent; cursor: pointer; text-align: center; }
+.chip input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.chip span { font-size: 18px; font-weight: 700; }
+.chip small { font-size: 12px; color: var(--muted); }
+.chip:has(input:checked) { background: var(--ink); color: var(--paper); }
+.chip:has(input:checked) small { color: var(--on-ink-muted); }
+.chip:has(input:focus-visible) { outline: 3px solid var(--focus); outline-offset: 2px; }
+.tile-hint { font-size: 13px; line-height: 1.25; color: var(--muted); padding: 0 2px 6px; text-wrap: balance; }
+.wide-tile { grid-column: 1 / -1; }
+.wide-tile .tile-photo { height: 64px; }
+.target-note { padding: 10px 14px; border-left: 3px solid var(--tape); font-size: 15px; color: var(--muted); background: rgba(252, 250, 245, 0.6); }
+.row-actions { display: flex; gap: 10px; }
+.btn-outline.grow { flex: 1 1 0; padding: 0 8px; font-size: 15px; }
+.question.center { text-align: center; }
 
 /* fin */
 .offer { padding: 34px 18px 18px; display: flex; flex-direction: column; gap: 12px; transform: rotate(-1deg); }
