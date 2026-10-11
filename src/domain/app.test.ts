@@ -9,28 +9,34 @@ const deps: AppDeps = { bank, interviewBank, rng: () => 0, newId: () => `p${++co
 const run = (state: AppState, ...actions: AppAction[]) => actions.reduce((s, a) => reduceApp(s, a, deps), state)
 const players = [{ id: 'p1', name: 'Mamie' }, { id: 'p2', name: 'Léo' }]
 
-describe('accueil', () => {
-  test("démarre sur l'accueil", () => {
-    expect(initialApp.mode).toBe('accueil')
+const home = () => run(initialApp, { type: 'home' })
+
+describe('liens et accueil', () => {
+  test('démarre sur la page de liens, et un lien mène à l\'accueil', () => {
+    expect(initialApp.mode).toBe('liens')
+    expect(home().mode).toBe('accueil')
+  })
+  test('choisir un mode depuis la page de liens est ignoré', () => {
+    expect(run(initialApp, { type: 'chooseMode', mode: 'jeu' }).mode).toBe('liens')
   })
   test('choisir un mode y entre', () => {
-    expect(run(initialApp, { type: 'chooseMode', mode: 'jeu' }).mode).toBe('jeu')
-    expect(run(initialApp, { type: 'chooseMode', mode: 'interview' }).mode).toBe('interview')
+    expect(run(home(), { type: 'chooseMode', mode: 'jeu' }).mode).toBe('jeu')
+    expect(run(home(), { type: 'chooseMode', mode: 'interview' }).mode).toBe('interview')
   })
   test("choisir un mode hors de l'accueil est ignoré", () => {
-    const inGame = run(initialApp, { type: 'chooseMode', mode: 'jeu' })
+    const inGame = run(home(), { type: 'chooseMode', mode: 'jeu' })
     expect(run(inGame, { type: 'chooseMode', mode: 'interview' }).mode).toBe('jeu')
   })
 })
 
 describe('sous-états', () => {
   test('une action de jeu ne touche que le jeu', () => {
-    const s = run(initialApp, { type: 'chooseMode', mode: 'jeu' }, { type: 'game', action: { type: 'acceptRules' } })
+    const s = run(home(), { type: 'chooseMode', mode: 'jeu' }, { type: 'game', action: { type: 'acceptRules' } })
     expect(s.game.phase).toBe('joueurs')
     expect(s.interview).toEqual(initialApp.interview)
   })
   test("une action d'interview ne touche que l'interview", () => {
-    const s = run(initialApp, { type: 'chooseMode', mode: 'interview' }, { type: 'interview', action: { type: 'start' } })
+    const s = run(home(), { type: 'chooseMode', mode: 'interview' }, { type: 'interview', action: { type: 'start' } })
     expect(s.interview.phase).toBe('chapitres')
     expect(s.game).toEqual(initialApp.game)
   })
@@ -41,7 +47,7 @@ describe('sous-états', () => {
 
 describe('retour accueil', () => {
   test('garde les joueurs saisis pour la prochaine fois', () => {
-    const s = run(initialApp, { type: 'chooseMode', mode: 'jeu' }, { type: 'game', action: { type: 'acceptRules' } }, { type: 'game', action: { type: 'addPlayer', name: 'Mamie' } }, { type: 'home' })
+    const s = run(home(), { type: 'chooseMode', mode: 'jeu' }, { type: 'game', action: { type: 'acceptRules' } }, { type: 'game', action: { type: 'addPlayer', name: 'Mamie' } }, { type: 'home' })
     expect(s.mode).toBe('accueil')
     expect(s.game.players).toHaveLength(1)
   })
@@ -72,7 +78,8 @@ describe('quitter en cours', () => {
     expect(s.mode).toBe('accueil')
     expect(s.interview).toEqual({ phase: 'chapitres', done: ['v0'] })
   })
-  test("quitter depuis l'accueil ne change rien", () => {
+  test("quitter depuis l'accueil ou la page de liens ne change rien", () => {
     expect(run(initialApp, { type: 'quit' })).toEqual(initialApp)
+    expect(run(home(), { type: 'quit' })).toEqual(home())
   })
 })

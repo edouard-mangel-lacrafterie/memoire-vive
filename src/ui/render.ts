@@ -1,10 +1,11 @@
 import { currentReader, DURATION_LABEL, reachedTarget, TARGET } from '../domain/game'
 import type { Catalog } from '../domain/validState'
 import type { AppState, GameState, InterviewState, Player } from '../domain/types'
+import type { links } from '../data/links'
 import type { rules } from '../data/rules'
 import { formatTime, type Recorder } from './recorder'
 
-export type RenderDeps = Catalog & { followUp: { lead: string; probes: readonly string[] }; consent: string; rules: typeof rules }
+export type RenderDeps = Catalog & { followUp: { lead: string; probes: readonly string[] }; consent: string; rules: typeof rules; links: typeof links }
 /** État d'interface non persisté : enregistreur simulé, transmission en cours, toast à afficher. */
 export type UiState = { recorder: Recorder; sending: boolean; toast: string | undefined }
 
@@ -33,6 +34,23 @@ function topBar(context?: { action: string; label: string }): string {
     <span class="wordmark">Mémoires vives !</span>
     <nav class="pills">${ctx}<button class="pill" data-action="quit" aria-label="Quitter et revenir à l'accueil">Quitter</button></nav>
   </header>`
+}
+
+function linksScreen(d: RenderDeps): string {
+  return `
+    <div class="stripes" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+    <div class="heading center">
+      <span class="eyebrow">Les histoires de famille, à voix haute</span>
+      <h1><span class="hl">Mémoires vives&nbsp;!</span></h1>
+    </div>
+    <div class="links">
+      <a class="btn-primary link-card" href="${d.links.sales.href}" target="_blank" rel="noopener">
+        <span class="link-main">${esc(d.links.sales.label)}</span>
+        <span class="sub">${esc(d.links.sales.hint)}</span>
+        ${svg(ICON_ARROW, 24, 2.5)}
+      </a>
+      <a class="link-plain" href="#" data-action="home">Jouer à Mémoires vives&nbsp;! ${svg(ICON_ARROW, 20, 2.5)}</a>
+    </div>`
 }
 
 function homeScreen(): string {
@@ -319,7 +337,8 @@ export function render(root: HTMLElement, app: AppState, d: RenderDeps, ui: UiSt
   const [name, html] =
     app.mode === 'jeu' ? [app.game.phase, gameScreen(app.game, d)]
     : app.mode === 'interview' ? [`iv-${app.interview.phase}`, interviewScreen(app.interview, d, ui)]
-    : ['accueil', homeScreen()]
+    : app.mode === 'accueil' ? ['accueil', homeScreen()]
+    : ['liens', linksScreen(d)]
   const toast = ui.toast ? `<div class="toast" role="status">${esc(ui.toast)}</div>` : ''
   root.innerHTML = `<section class="screen screen-${name}">${html}</section>${toast}`
 }

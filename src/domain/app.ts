@@ -11,7 +11,7 @@ export type AppAction =
 
 export type AppDeps = GameDeps & { interviewBank: readonly InterviewQuestion[] }
 
-export const initialApp: AppState = { mode: 'accueil', game: initialGame, interview: initialInterview }
+export const initialApp: AppState = { mode: 'liens', game: initialGame, interview: initialInterview }
 
 // En rentrant à l'accueil, un parcours terminé est remis à zéro ; un parcours en cours reprendra où il en était.
 const settleGame = (g: GameState, deps: GameDeps): GameState => (g.phase === 'fin' ? reduceGame(g, { type: 'restart' }, deps) : g)

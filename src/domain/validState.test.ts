@@ -27,7 +27,7 @@ test('une partie en mode mélange est cohérente', () => {
 test("l'ancien format (joueurs avec âge, phases d'avant) garde les prénoms et repart aux joueurs", () => {
   const legacy = { phase: 'tour', players: [{ id: 'p1', name: 'Mamie', age: 72 }, { id: 'p2', name: 'Léo', age: 9 }], turn: 0, asked: [], memories: 0 }
   const r = recoverState(legacy, catalog)
-  expect(r.mode).toBe('accueil')
+  expect(r.mode).toBe('liens')
   expect(r.game.phase).toBe('joueurs')
   expect(r.game.players).toEqual(players)
 })
@@ -36,8 +36,10 @@ test.each<[string, unknown]>([
   ['mode inconnu', { ...ok, mode: 'zzz' }],
   ['état null', null],
   ['chaîne', 'x'],
-])("repart de l'accueil : %s", (_label, broken) => {
-  expect(recoverState(broken, catalog).mode).toBe('accueil')
+  ['accueil sauvegardé (rien en cours)', { ...ok, mode: 'accueil' }],
+  ['page de liens sauvegardée', { ...ok, mode: 'liens' }],
+])("repart de la page de liens : %s", (_label, broken) => {
+  expect(recoverState(broken, catalog).mode).toBe('liens')
 })
 
 test('sans joueur connu, la partie repart aux règles', () => {

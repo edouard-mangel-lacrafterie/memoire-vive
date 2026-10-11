@@ -8,6 +8,7 @@ const game = (phase: AppState['game']['phase']) => app({ mode: 'jeu', game: { ..
 const interview = (phase: AppState['interview']['phase']) => app({ mode: 'interview', interview: { ...initialApp.interview, phase } })
 
 test.each<[string, AppState, boolean]>([
+  ['liens', app({ mode: 'liens' }), false],
   ['accueil', app({ mode: 'accueil' }), false],
   ['jeu/regles', game('regles'), false],
   ['jeu/joueurs', game('joueurs'), false],

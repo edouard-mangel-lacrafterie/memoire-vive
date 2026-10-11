@@ -10,7 +10,7 @@ export type Catalog = {
   chapters: readonly Chapter[]
 }
 
-const MODES: readonly Mode[] = ['accueil', 'jeu', 'interview']
+const MODES: readonly Mode[] = ['liens', 'accueil', 'jeu', 'interview']
 const PHASES: readonly Phase[] = ['regles', 'joueurs', 'choix', 'question', 'fin']
 const DURATIONS: readonly Duration[] = ['courte', 'moyenne', 'longue']
 const INTERVIEW_PHASES: readonly InterviewPhase[] = ['intro', 'chapitres', 'question', 'fin']
@@ -63,6 +63,8 @@ export function recoverState(raw: unknown, c: Catalog): AppState {
   // Ancien format (avant les modes) : la partie était sauvegardée seule.
   const legacy = Array.isArray(raw.players) && !('mode' in raw)
   if (legacy) return { ...initialApp, game: recoverGame(raw, c) }
-  const mode = MODES.includes(raw.mode as Mode) ? (raw.mode as Mode) : 'accueil'
+  // Rien en cours (liens ou accueil) : on rouvre sur la page de liens. Une partie ou un entretien reprend où il en était.
+  const saved = MODES.includes(raw.mode as Mode) ? (raw.mode as Mode) : 'liens'
+  const mode: Mode = saved === 'accueil' ? 'liens' : saved
   return { mode, game: recoverGame(raw.game, c), interview: recoverInterview(raw.interview, c) }
 }

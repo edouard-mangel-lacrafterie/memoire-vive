@@ -5,6 +5,7 @@ import { recoverState, type Catalog } from './domain/validState'
 import type { AppState, ChapterId, Duration, LevelChoice } from './domain/types'
 import { chapters, consent, followUp, interviewQuestions } from './data/interview'
 import { levels } from './data/levels'
+import { links } from './data/links'
 import { questions } from './data/questions'
 import { rules } from './data/rules'
 import { loadState, saveState } from './storage/local'
@@ -40,7 +41,7 @@ const game = (action: GameAction) => dispatch({ type: 'game', action })
 const interview = (action: InterviewAction) => dispatch({ type: 'interview', action })
 
 function paint(): void {
-  render(root, state, { ...catalog, followUp, consent, rules }, ui)
+  render(root, state, { ...catalog, followUp, consent, rules, links }, ui)
   syncWakeLock(state)
 }
 
