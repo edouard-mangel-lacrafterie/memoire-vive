@@ -49,7 +49,11 @@ function linksScreen(d: RenderDeps): string {
         <span class="sub">${esc(d.links.sales.hint)}</span>
         ${svg(ICON_ARROW, 24, 2.5)}
       </a>
-      <a class="link-plain" href="#" data-action="home">Jouer à Mémoires vives&nbsp;! ${svg(ICON_ARROW, 20, 2.5)}</a>
+      <a class="btn-outline link-card secondary" href="#" data-action="home">
+        <span class="link-main">Découvre l'application Mémoires vives&nbsp;!</span>
+        <span class="sub">Jeu en famille et interview, gratuit</span>
+        ${svg(ICON_ARROW, 24, 2.5)}
+      </a>
     </div>`
 }
 

@@ -2,7 +2,7 @@
 export const links = {
   sales: {
     href: 'https://claude.ai/artifact/XDTDUBp6VWSFHPd5zxfXGx#artboard-15dd8cd198dd',
-    label: 'Mission Biographie',
-    hint: 'La formation en 30 jours pour recueillir l\'histoire de votre proche',
+    label: "On t'accompagne pour recueillir l'histoire de tes parents en 30 jours",
+    hint: 'Mission Biographie, la formation',
   },
 } as const
